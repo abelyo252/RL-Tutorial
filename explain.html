@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Learning Explainer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Load MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="asset/css/explain.css">
+    
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-light.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+    
+    <!-- Configure Tailwind with custom colors and extended theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#6366F1',
+                        accent: '#8B5CF6',
+                        light: '#F9FAFB',
+                        textPrimary: '#1F2937',
+                        textSecondary: '#4B5563',
+                        borderColor: '#E5E7EB'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                    },
+                    boxShadow: {
+                        'card': '0 2px 10px rgba(0, 0, 0, 0.05)',
+                        'code': '0 1px 2px rgba(0, 0, 0, 0.03)'
+                    }
+                },
+            },
+        }
+    </script>
+    
+
+</head>
+<body class="bg-gray-100 text-textPrimary">
+    <!-- Header for mobile -->
+    <header class="md:hidden fixed top-0 left-0 right-0 bg-white z-30 border-b shadow-sm flex items-center justify-between px-4 py-2">
+        <div class="flex items-center">
+            <button id="mobile-sidebar-toggle" class="p-2 rounded-md text-gray-500 hover:bg-gray-100 mr-2">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="flex items-center">
+                <div class="bg-primary text-white p-1.5 rounded-md mr-2">
+                    <i class="fas fa-code text-sm"></i>
+                </div>
+                <h1 class="text-base font-bold text-primary">Q-Learning Explainer</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main container -->
+    <div class="flex min-h-screen pt-[56px] md:pt-0">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar bg-white shadow-sm border-r h-screen sticky top-0 left-0 z-40 overflow-hidden flex flex-col">
+            <!-- Sidebar header -->
+            <div class="p-4 border-b flex items-center justify-between">
+                <div class="flex items-center overflow-hidden">
+                    <div class="bg-primary text-white p-1.5 rounded-md flex-shrink-0">
+                        <i class="fas fa-code text-sm"></i>
+                    </div>
+                    <h1 class="text-base font-bold text-primary ml-2 whitespace-nowrap sidebar-text">Q-Learning Explainer</h1>
+                </div>
+                <button id="collapse-sidebar" class="hidden md:block text-gray-500 hover:bg-gray-100 p-1 rounded">
+                    <i class="fas fa-angles-left"></i>
+                </button>
+            </div>
+            
+            <!-- Sidebar navigation -->
+            <nav class="flex-grow py-3 overflow-y-auto">
+                <ul class="space-y-1 px-2">
+                    <li>
+                        <button data-section="home" class="sidebar-menu-item w-full flex items-center px-3 py-2 rounded-md text-left hover:bg-primary/10 active bg-primary/10 text-primary">
+                            <i class="fas fa-home w-5 text-center"></i>
+                            <span class="ml-3 sidebar-text">Introduction</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button data-section="theory" class="sidebar-menu-item w-full flex items-center px-3 py-2 rounded-md text-left hover:bg-primary/10">
+                            <i class="fas fa-lightbulb w-5 text-center"></i>
+                            <span class="ml-3 sidebar-text">Concept</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button data-section="algorithm" class="sidebar-menu-item w-full flex items-center px-3 py-2 rounded-md text-left hover:bg-primary/10">
+                            <i class="fas fa-code-branch w-5 text-center"></i>
+                            <span class="ml-3 sidebar-text">Algorithm</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button data-section="code" class="sidebar-menu-item w-full flex items-center px-3 py-2 rounded-md text-left hover:bg-primary/10">
+                            <i class="fas fa-file-code w-5 text-center"></i>
+                            <span class="ml-3 sidebar-text">Code</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button data-section="explanation" class="sidebar-menu-item w-full flex items-center px-3 py-2 rounded-md text-left hover:bg-primary/10">
+                            <i class="fas fa-play w-5 text-center"></i>
+                            <span class="ml-3 sidebar-text">Explanation</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main content -->
+        <main id="content-wrapper" class="flex-grow transition-all">
+            <!-- Home/Introduction section -->
+            <section id="home" class="section-content p-3 md:p-5 max-w-5xl mx-auto">
+                <h1 class="text-2xl md:text-3xl font-bold text-primary mb-3">Model-Free Q-Learning Algorithm: In-Depth Guide</h1>
+                <p class="text-sm md:text-base text-gray-600 mb-4">Understanding reinforcement learning through clear mathematics and code explanation</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="clean-box h-full">
+                        <h2 class="text-lg font-bold mb-3 flex items-center">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>
+                            What is Q-Learning?
+                        </h2>
+                        <p class="text-sm mb-2">
+                            Q-learning is a model-free reinforcement learning algorithm that learns the value of actions in states, helping an agent determine the optimal action-selection policy in a given environment.
+                        </p>
+                        <p class="text-sm">
+                            The algorithm is <em>model-free</em> because it doesn't require knowledge of the environment's dynamics (transition probabilities and rewards), making it applicable to a wide range of problems where such models are unavailable or complex.
+                        </p>
+                    </div>
+                    
+                    <div class="clean-box h-full">
+                        <div class="game-grid-example mb-3">
+                            <div class="grid-cell-example start-cell">S</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example hole-cell">H</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example hole-cell">H</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            
+                            <div class="grid-cell-example hole-cell">H</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example hole-cell">H</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example hole-cell">H</div>
+                            
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example safe-cell">F</div>
+                            <div class="grid-cell-example goal-cell">G</div>
+                        </div>
+                        
+                        <div class="flex flex-wrap justify-center gap-3 text-xs">
+                            <div><span class="inline-block w-3 h-3 bg-blue-400 rounded-sm mr-1"></span> Start</div>
+                            <div><span class="inline-block w-3 h-3 bg-red-400 rounded-sm mr-1"></span> Hole</div>
+                            <div><span class="inline-block w-3 h-3 bg-green-400 rounded-sm mr-1"></span> Goal</div>
+                            <div><span class="inline-block w-3 h-3 bg-gray-300 rounded-sm mr-1"></span> Safe</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="clean-box">
+                        <h3 class="font-medium mb-2 flex items-center">
+                            <i class="fas fa-lightbulb text-primary mr-2"></i>
+                            Key Concepts
+                        </h3>
+                        <ul class="space-y-1 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span><strong>States & Actions:</strong> Positions in the grid and movements</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span><strong>Rewards:</strong> Feedback from the environment</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span><strong>Q-Table:</strong> Stores expected future rewards</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span><strong>Exploration vs. Exploitation:</strong> Try new vs. known paths</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="clean-box">
+                        <h3 class="font-medium mb-2 flex items-center">
+                            <i class="fas fa-code text-primary mr-2"></i>
+                            Implementation
+                        </h3>
+                        <ul class="space-y-1 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Q-learning agent with configurable parameters</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Grid world environment with hazards</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Visualization of Q-table and learning</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Mathematical foundation of the algorithm</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="clean-box">
+                        <h3 class="font-medium mb-2 flex items-center">
+                            <i class="fas fa-graduation-cap text-primary mr-2"></i>
+                            Why Learn Q-Learning?
+                        </h3>
+                        <ul class="space-y-1 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Foundation for advanced AI systems</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Builds problem-solving skills</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Reveals principles of algorithm design</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <span>Gateway to modern reinforcement learning</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="clean-box">
+                    <h2 class="text-lg font-bold mb-3">The Q-Learning Algorithm</h2>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Q-Learning Algorithm Pseudocode</span>
+                        </div>
+                        <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Initialize Q-table with zeros
+const qTable = Array(NUM_STATES).fill().map(() => Array(NUM_ACTIONS).fill(0));
+
+// Set learning parameters
+const learningRate = 0.7;       // Alpha
+const discountFactor = 0.9;     // Gamma
+const explorationRate = 0.3;    // Epsilon
+
+// Main Q-learning loop
+function train(numEpisodes) {
+    for (let episode = 0; episode < numEpisodes; episode++) {
+        // Reset agent to start state
+        let state = STARTING_STATE;
+        let done = false;
+        
+        // Episode loop
+        while (!done) {
+            // Select action using epsilon-greedy policy
+            const action = chooseAction(state);
+            
+            // Take action, observe reward and next state
+            const { nextState, reward, done: episodeDone } = 
+                environment.step(state, action);
+            
+            // Q-learning update rule
+            const oldQValue = qTable[state][action];
+            const nextMaxQValue = Math.max(...qTable[nextState]);
+            qTable[state][action] = oldQValue + learningRate * 
+                (reward + discountFactor * nextMaxQValue - oldQValue);
+            
+            // Move to next state
+            state = nextState;
+            done = episodeDone;
+        }
+        
+        // Decay exploration rate
+        explorationRate *= 0.98;
+    }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-primary/5 rounded-lg text-center">
+                    <p class="text-sm font-medium">
+                        Ready to explore? Use the sidebar to navigate through detailed explanations.
+                    </p>
+                </div>
+            </section>
+            
+            <!-- Concept Explanation section -->
+            <section id="theory" class="section-content hidden p-3 md:p-5 max-w-5xl mx-auto">
+                <h1 class="text-2xl md:text-3xl font-bold text-primary mb-3">Mathematical Foundation of Q-Learning</h1>
+                <p class="text-sm md:text-base text-gray-600 mb-4">Understanding the equations that power the algorithm</p>
+                
+                <div class="clean-box">
+                    <h2 class="text-lg font-bold mb-3">The Q-Learning Update Equation</h2>
+                    <p class="text-sm mb-3">
+                        At the heart of Q-learning is the update rule that modifies the Q-value for a state-action pair based on the reward received and the maximum future Q-value.
+                    </p>
+                    
+                    <div class="formula-block">
+                        \[Q(s,a) \leftarrow Q(s,a) + \alpha \left[ r + \gamma \max_{a'} Q(s',a') - Q(s,a) \right]\]
+                    </div>
+                    
+                    <p class="text-sm mt-3 mb-2">Where:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <ul class="space-y-1">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-2">•</span>
+                                    <div>
+                                        <strong>Q(s,a)</strong>: The Q-value for state s and action a
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-2">•</span>
+                                    <div>
+                                        <strong>\(\alpha\)</strong>: Learning rate (how much new info overrides old)
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-2">•</span>
+                                    <div>
+                                        <strong>r</strong>: Reward received after taking action a in state s
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <ul class="space-y-1">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-2">•</span>
+                                    <div>
+                                        <strong>\(\gamma\)</strong>: Discount factor (importance of future rewards)
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-2">•</span>
+                                    <div>
+                                        <strong>\(\max_{a'} Q(s',a')\)</strong>: Max Q-value for next state actions
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-2">•</span>
+                                    <div>
+                                        <strong>TD Error:</strong> \(r + \gamma \max_{a'} Q(s',a') - Q(s,a)\)
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
+                    <div class="clean-box">
+                        <h2 class="text-lg font-bold mb-3">Epsilon-Greedy Strategy</h2>
+                        <p class="text-sm mb-3">
+                            To balance exploration and exploitation, Q-learning uses an epsilon-greedy strategy:
+                        </p>
+                        
+                        <div class="formula-block">
+                            \[a = 
+                            \begin{cases}
+                            \text{random action,} & \text{with probability } \epsilon \\
+                            \arg\max_a Q(s,a), & \text{with probability } 1-\epsilon
+                            \end{cases}\]
+                        </div>
+                        
+                        <p class="text-sm mt-3">
+                            The exploration rate \(\epsilon\) typically decays over time:
+                        </p>
+                        
+                        <div class="formula-block">
+                            \[\epsilon = \max(\epsilon_{\min}, \epsilon \times \text{decay rate})\]
+                        </div>
+                    </div>
+                    
+                    <div class="clean-box">
+                        <h2 class="text-lg font-bold mb-3">The Bellman Equation</h2>
+                        <p class="text-sm mb-3">
+                            Q-learning is based on the Bellman equation, which describes the relationship between state values:
+                        </p>
+                        
+                        <div class="formula-block">
+                            \[Q^*(s,a) = \mathbb{E}\left[ r + \gamma \max_{a'} Q^*(s',a') \right]\]
+                        </div>
+                        
+                        <p class="text-sm mt-3">
+                            Q-learning converges to the optimal policy when:
+                        </p>
+                        <ul class="space-y-1 mt-2 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <div>
+                                    All state-action pairs are visited infinitely often
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-2">•</span>
+                                <div>
+                                    The learning rate decreases appropriately over time
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="clean-box">
+                    <h2 class="text-lg font-bold mb-3">Q-Learning vs. SARSA: Off-Policy vs. On-Policy</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-base font-semibold mb-2 text-primary">Q-Learning (Off-Policy)</h3>
+                            <p class="text-sm mb-2">
+                                Q-Learning updates Q-values using the maximum Q-value of the next state, regardless of what action is actually taken next.
+                            </p>
+                            <div class="formula-block">
+                                \[Q(s,a) \leftarrow Q(s,a) + \alpha [r + \gamma \max_{a'} Q(s',a') - Q(s,a)]\]
+                            </div>
+                            <p class="text-sm mt-2">
+                                This means it learns from hypothetical optimal future actions, not the actions that would be taken by the current policy.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-base font-semibold mb-2 text-primary">SARSA (On-Policy)</h3>
+                            <p class="text-sm mb-2">
+                                SARSA updates Q-values using the Q-value of the actual next state-action pair according to the current policy.
+                            </p>
+                            <div class="formula-block">
+                                \[Q(s,a) \leftarrow Q(s,a) + \alpha [r + \gamma Q(s',a') - Q(s,a)]\]
+                            </div>
+                            <p class="text-sm mt-2">
+                                This means it learns from the actual policy being followed, making it more conservative but potentially safer in some environments.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Algorithm Logic section -->
+            <section id="algorithm" class="section-content hidden p-3 md:p-5 max-w-5xl mx-auto">
+                <h1 class="text-2xl md:text-3xl font-bold text-primary mb-3">Q-Learning Algorithm Implementation</h1>
+                <p class="text-sm md:text-base text-gray-600 mb-4">Understanding how the algorithm works through code</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="clean-box">
+                        <h3 class="text-base font-semibold mb-2 text-primary">1. Q-Table Initialization</h3>
+                        
+                        <div class="code-block mb-0">
+                            <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Initialize Q-table with zeros
+const qTable = Array(NUM_STATES).fill()
+    .map(() => Array(NUM_ACTIONS).fill(0));</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="code-annotation">
+                            Creates a 2D array where rows represent states and columns represent actions. All values are initialized to zero, meaning the agent has no initial preference.
+                        </div>
+                    </div>
+                    
+                    <div class="clean-box">
+                        <h3 class="text-base font-semibold mb-2 text-primary">2. Action Selection (Epsilon-Greedy)</h3>
+                        
+                        <div class="code-block mb-0">
+                            <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">function chooseAction(state) {
+    // Exploration: choose random action
+    if (Math.random() < explorationRate) {
+        return Math.floor(Math.random() * NUM_ACTIONS);
+    }
+    // Exploitation: choose best action
+    else {
+        const qValues = qTable[state];
+        return qValues.indexOf(Math.max(...qValues));
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="code-annotation">
+                            Implements epsilon-greedy strategy: explore (random action) with probability ε or exploit (best known action) with probability 1-ε.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="clean-box">
+                        <h3 class="text-base font-semibold mb-2 text-primary">3. Q-Value Update</h3>
+                        
+                        <div class="code-block mb-0">
+                            <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Get old Q-value
+const oldQValue = qTable[state][action];
+
+// Find maximum Q-value for next state
+const nextMaxQValue = Math.max(...qTable[nextState]);
+
+// Calculate temporal difference error
+const tdError = reward + discountFactor * nextMaxQValue - oldQValue;
+
+// Update Q-value using learning rate
+qTable[state][action] = oldQValue + learningRate * tdError;</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="code-annotation">
+                            Implements the Q-learning update rule. Calculates the temporal difference error and updates the current Q-value based on the learning rate.
+                        </div>
+                    </div>
+                    
+                    <div class="clean-box">
+                        <h3 class="text-base font-semibold mb-2 text-primary">4. Exploration Rate Decay</h3>
+                        
+                        <div class="code-block mb-0">
+                            <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Decay exploration rate after each episode
+explorationRate = Math.max(
+    MIN_EXPLORATION_RATE, 
+    explorationRate * explorationDecay
+);</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="code-annotation">
+                            Reduces the exploration rate after each episode, gradually shifting from exploration to exploitation as the agent learns more about the environment.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="clean-box">
+                    <h2 class="text-lg font-bold mb-3">SARSA vs. Q-Learning</h2>
+                    
+                    <p class="text-sm mb-3">
+                        While Q-learning uses the maximum Q-value of the next state (off-policy), SARSA uses the Q-value of the actual next action chosen (on-policy).
+                    </p>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Comparison of Update Rules</span>
+                        </div>
+                        <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Q-learning (Off-policy)
+qTable[state][action] = oldQValue + learningRate * (
+    reward + discountFactor * Math.max(...qTable[nextState]) - oldQValue
+);
+
+// SARSA (On-policy)
+qTable[state][action] = oldQValue + learningRate * (
+    reward + discountFactor * qTable[nextState][nextAction] - oldQValue
+);</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-blue-50 rounded-md text-sm">
+                        <p class="text-blue-800">
+                            <strong>Key Difference:</strong> Q-learning is more optimistic and aggressive, while SARSA is more conservative and can be safer in risky environments.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Code Walkthrough section -->
+            <section id="code" class="section-content hidden p-3 md:p-5 max-w-5xl mx-auto">
+                <h1 class="text-2xl md:text-3xl font-bold text-primary mb-3">Code Structure Walkthrough</h1>
+                <p class="text-sm md:text-base text-gray-600 mb-4">Understanding each component of the Q-learning implementation</p>
+                
+                <div class="clean-box">
+                    <h2 class="text-lg font-bold mb-3">Environment Setup</h2>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>environment.js</span>
+                        </div>
+                        <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Constants defining the environment
+const GRID_SIZE = 5;
+const ACTIONS = ['up', 'right', 'down', 'left'];
+const ACTION_DELTAS = {
+    'up': { x: 0, y: -1 },
+    'right': { x: 1, y: 0 },
+    'down': { x: 0, y: 1 },
+    'left': { x: -1, y: 0 }
+};
+
+// Reward structure
+const REWARDS = {
+    move: -0.1,      // Small penalty for each step
+    goal: 1.0,       // Reward for reaching goal
+    hole: -1.0,      // Penalty for falling in hole
+    invalid: -0.3    // Penalty for invalid move
+};
+
+// Environment object
+const environment = {
+    // Grid layout: 'S'=start, 'G'=goal, 'H'=hole, 'F'=safe
+    grid: [
+        ['S', 'F', 'F', 'F', 'F'],
+        ['F', 'H', 'F', 'H', 'F'],
+        ['F', 'F', 'F', 'F', 'F'],
+        ['H', 'F', 'H', 'F', 'H'],
+        ['F', 'F', 'F', 'F', 'G']
+    ],
+    
+    // Position helpers
+    startPosition: { x: 0, y: 0 },
+    goalPosition: { x: 4, y: 4 },
+    
+    // Step function - take action and return result
+    step: function(stateIndex, action) {
+        const { x, y } = this.getCoordinates(stateIndex);
+        const delta = ACTION_DELTAS[ACTIONS[action]];
+        const newX = x + delta.x;
+        const newY = y + delta.y;
+        
+        // Check if move is valid
+        if (!this.isValidPosition(newX, newY)) {
+            return {
+                nextState: stateIndex,
+                reward: REWARDS.invalid,
+                done: false
+            };
+        }
+        
+        // Check if new position is a hole or goal
+        if (this.isHole(newX, newY)) {
+            return {
+                nextState: this.getStateIndex(newX, newY),
+                reward: REWARDS.hole,
+                done: true
+            };
+        } else if (this.isGoal(newX, newY)) {
+            return {
+                nextState: this.getStateIndex(newX, newY),
+                reward: REWARDS.goal,
+                done: true
+            };
+        }
+        
+        // Regular move to a safe cell
+        return {
+            nextState: this.getStateIndex(newX, newY),
+            reward: REWARDS.move,
+            done: false
+        };
+    }
+    // Other helper methods omitted for brevity...
+};</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Key Environment Components</h3>
+                            <ul class="space-y-1 text-xs">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span><strong>Grid:</strong> 5×5 layout with start, goal, holes, and safe cells</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span><strong>Actions:</strong> Up, right, down, left movements</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span><strong>Rewards:</strong> Different values for different outcomes</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Step Function Explained</h3>
+                            <ol class="space-y-1 text-xs list-decimal ml-4">
+                                <li>Takes current state and action</li>
+                                <li>Calculates new position</li>
+                                <li>Checks if move is valid</li>
+                                <li>Determines outcome (move, hole, goal)</li>
+                                <li>Returns next state, reward, and done status</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="clean-box mt-4">
+                    <h2 class="text-lg font-bold mb-3">Agent Implementation</h2>
+                    
+                    <div class="p-3 mb-3 bg-primary/5 rounded-md text-sm">
+                        <p>
+                            The agent is responsible for learning and decision-making. It maintains the Q-table, selects actions, and updates its knowledge based on rewards.
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">chooseAction(stateIndex)</h3>
+                            <div class="code-block mb-0 border-0 shadow-none">
+                                <div class="code-content bg-gray-50 p-2 text-xs">
+<pre><code class="language-javascript">// Choose action using epsilon-greedy policy
+chooseAction: function(stateIndex) {
+    // Exploration: random action with probability ε
+    if (Math.random() < this.explorationRate) {
+        return Math.floor(Math.random() * ACTIONS.length);
+    }
+    // Exploitation: best action with probability 1-ε
+    else {
+        const qValues = this.qTable[stateIndex];
+        const maxQValue = Math.max(...qValues);
+        const bestActions = qValues
+            .map((q, i) => q === maxQValue ? i : -1)
+            .filter(i => i !== -1);
+        return bestActions[
+            Math.floor(Math.random() * bestActions.length)
+        ];
+    }
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-3 rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">updateQValue(...)</h3>
+                            <div class="code-block mb-0 border-0 shadow-none">
+                                <div class="code-content bg-gray-50 p-2 text-xs">
+<pre><code class="language-javascript">// Update Q-value based on experience
+updateQValue: function(state, action, reward, nextState) {
+    // Get old Q-value
+    const oldQValue = this.qTable[state][action];
+    
+    // Find maximum Q-value for next state
+    const nextMaxQValue = Math.max(...this.qTable[nextState]);
+    
+    // Calculate temporal difference error
+    const tdError = reward + this.discountFactor * 
+        nextMaxQValue - oldQValue;
+    
+    // Update Q-value using learning rate
+    this.qTable[state][action] = oldQValue + 
+        this.learningRate * tdError;
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="clean-box mt-4">
+                    <h2 class="text-lg font-bold mb-3">Step-by-Step Execution</h2>
+                    
+                    <div class="code-block mb-3">
+                        <div class="code-header">
+                            <span>Single Step Function</span>
+                        </div>
+                        <div class="code-content bg-gray-50">
+<pre><code class="language-javascript">// Single step in the Q-learning process
+function step() {
+    // Get current state
+    const currentState = environment.getStateIndex(
+        agent.position.x, agent.position.y
+    );
+    
+    // Choose action using epsilon-greedy
+    const action = agent.chooseAction(currentState);
+    
+    // Take action, observe result
+    const result = environment.step(currentState, action);
+    const { nextState, reward, done } = result;
+    
+    // Update Q-value
+    agent.updateQValue(currentState, action, reward, nextState);
+    
+    // Update agent position (if not done)
+    if (!done) {
+        agent.position = environment.getCoordinates(nextState);
+    } else {
+        // If episode is done, reset agent & decay exploration
+        agent.reset();
+        agent.decayExploration();
+    }
+    
+    return { currentState, action, result, done };
+}</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-2 mb-3">
+                        <button class="step-button active" data-step="1">Step 1</button>
+                        <button class="step-button" data-step="2">Step 2</button>
+                        <button class="step-button" data-step="3">Step 3</button>
+                        <button class="step-button" data-step="4">Step 4</button>
+                    </div>
+                    
+                    <div id="step-1" class="p-3 bg-primary/5 rounded-md text-sm">
+                        <h4 class="font-medium mb-1">Step 1: Get Current State & Choose Action</h4>
+                        <p class="text-xs">
+                            The agent's position is converted to a state index. Then, using epsilon-greedy policy, the agent either explores (random action) or exploits (best known action).
+                        </p>
+                    </div>
+                    
+                    <div id="step-2" class="p-3 bg-primary/5 rounded-md text-sm hidden">
+                        <h4 class="font-medium mb-1">Step 2: Take Action & Observe Results</h4>
+                        <p class="text-xs">
+                            The environment processes the action and returns the next state, reward, and whether the episode is complete (reached goal or fell in hole).
+                        </p>
+                    </div>
+                    
+                    <div id="step-3" class="p-3 bg-primary/5 rounded-md text-sm hidden">
+                        <h4 class="font-medium mb-1">Step 3: Update Q-Value</h4>
+                        <p class="text-xs">
+                            The Q-value is updated using: Q(s,a) = Q(s,a) + α[r + γ·max Q(s',a') - Q(s,a)]. This moves the Q-value toward the target value (reward plus discounted future value).
+                        </p>
+                    </div>
+                    
+                    <div id="step-4" class="p-3 bg-primary/5 rounded-md text-sm hidden">
+                        <h4 class="font-medium mb-1">Step 4: Update Agent State</h4>
+                        <p class="text-xs">
+                            If not done, the agent moves to the new position. If done (reached goal or hole), the agent resets to the start position and decreases its exploration rate.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Explanation section -->
+            <section id="explanation" class="section-content hidden p-3 md:p-5 max-w-5xl mx-auto">
+                <h1 class="text-2xl md:text-3xl font-bold text-primary mb-3">Understanding Model-Free Q-Learning</h1>
+                <p class="text-sm md:text-base text-gray-600 mb-4">Key insights and deeper explanations</p>
+                
+                <div class="clean-box">
+                    <h2 class="text-lg font-bold mb-3">Why "Model-Free"?</h2>
+                    
+                    <p class="text-sm mb-3">
+                        Q-learning is considered "model-free" because it does not require a model of the environment's dynamics. In reinforcement learning, we distinguish between:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div class="p-3 bg-gray-50 rounded-md">
+                            <h3 class="text-sm font-medium text-primary mb-2">Model-Based RL</h3>
+                            <ul class="space-y-1 text-xs">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Requires explicit model of environment dynamics</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Needs transition probabilities P(s'|s,a)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Needs reward function R(s,a,s')</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Can plan ahead using the model</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-3 bg-gray-50 rounded-md">
+                            <h3 class="text-sm font-medium text-primary mb-2">Model-Free RL (Q-Learning)</h3>
+                            <ul class="space-y-1 text-xs">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Learns directly from experience/samples</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>No need to know transition probabilities</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Discovers environment through trial and error</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>More flexible but can be sample-inefficient</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm">
+                        This model-free property makes Q-learning particularly useful in complex environments where building an accurate model is difficult or impossible.
+                    </p>
+                </div>
+                
+                <div class="clean-box mt-4">
+                    <h2 class="text-lg font-bold mb-3">Q-Table Convergence</h2>
+                    
+                    <p class="text-sm mb-3">
+                        The Q-table eventually converges to the optimal Q-values, denoted as Q*(s,a), which represent the expected cumulative reward starting from state s, taking action a, and following the optimal policy thereafter.
+                    </p>
+                    
+                    <div class="p-3 bg-blue-50 rounded-md text-sm mb-3">
+                        <p class="text-blue-800">
+                            <strong>Theorem:</strong> Q-learning converges to the optimal Q-values with probability 1 as long as:
+                        </p>
+                        <ul class="mt-2 space-y-1 text-xs text-blue-800">
+                            <li class="flex items-start">
+                                <span class="text-primary mr-1">1.</span>
+                                <span>All state-action pairs continue to be visited (exploration never completely stops)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary mr-1">2.</span>
+                                <span>The learning rate \(\alpha\) satisfies the Robbins-Monro conditions: \(\sum_{t=1}^{\infty} \alpha_t = \infty\) and \(\sum_{t=1}^{\infty} \alpha_t^2 < \infty\)</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <p class="text-sm">
+                        In practice, this means we need to ensure all state-action pairs are visited frequently and the learning rate should decrease over time, but not too quickly.
+                    </p>
+                </div>
+                
+                <div class="clean-box mt-4">
+                    <h2 class="text-lg font-bold mb-3">Advanced Topics in Q-Learning</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Double Q-Learning</h3>
+                            <p class="text-xs">
+                                Standard Q-learning can overestimate Q-values due to taking the maximum over noisy estimates. Double Q-learning addresses this by maintaining two Q-functions and using one to select actions and the other to evaluate them.
+                            </p>
+                            <div class="formula-block mt-2">
+                                \[Q_1(s,a) \leftarrow Q_1(s,a) + \alpha [r + \gamma Q_2(s', \arg\max_{a'} Q_1(s',a')) - Q_1(s,a)]\]
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Prioritized Experience Replay</h3>
+                            <p class="text-xs">
+                                This technique improves sample efficiency by replaying transitions with high TD error more frequently, focusing learning on unexpected or difficult parts of the environment.
+                            </p>
+                            <p class="text-xs mt-2">
+                                The priority of a transition is often set proportional to:
+                            </p>
+                            <div class="formula-block mt-1">
+                                \[p_i = |r + \gamma \max_{a'} Q(s',a') - Q(s,a)|^{\alpha}\]
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-white rounded-md border">
+                        <h3 class="text-sm font-medium text-primary mb-2">From Tabular Q-Learning to Deep Q-Networks (DQN)</h3>
+                        <p class="text-xs mb-2">
+                            For environments with large or continuous state spaces, storing a Q-table becomes impractical. Deep Q-Networks (DQN) address this by approximating the Q-function using neural networks:
+                        </p>
+                        <div class="formula-block">
+                            \[Q(s,a; \theta) \approx Q^*(s,a)\]
+                        </div>
+                        <p class="text-xs mt-2">
+                            Where \(\theta\) represents the parameters of the neural network. The network is trained by minimizing the loss:
+                        </p>
+                        <div class="formula-block">
+                            \[L(\theta) = \mathbb{E}[(r + \gamma \max_{a'} Q(s',a';\theta^-) - Q(s,a;\theta))^2]\]
+                        </div>
+                        <p class="text-xs mt-2">
+                            DQN introduces two key innovations to stabilize learning:
+                        </p>
+                        <ol class="text-xs mt-1 list-decimal ml-4 space-y-1">
+                            <li>Experience replay: Store transitions and sample randomly to reduce correlation between consecutive updates</li>
+                            <li>Target network: Use a separate network with parameters \(\theta^-\) that are updated less frequently to reduce moving target problem</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="clean-box mt-4">
+                    <h2 class="text-lg font-bold mb-3">Q-Learning Applications</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Robotics</h3>
+                            <ul class="text-xs space-y-1">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Navigation in unknown environments</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Object manipulation tasks</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Adaptive control systems</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Game AI</h3>
+                            <ul class="text-xs space-y-1">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Atari games (DQN breakthrough)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Chess and Go (combined with other techniques)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Non-player characters in video games</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-3 bg-white rounded-md border">
+                            <h3 class="text-sm font-medium text-primary mb-2">Real-World Systems</h3>
+                            <ul class="text-xs space-y-1">
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Traffic light control</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Resource management</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary mr-1">•</span>
+                                    <span>Recommendation systems</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="asset/js/explain.js"></script>
+</body>
+</html>

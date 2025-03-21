@@ -1,0 +1,120 @@
+/* Custom styles */
+.sidebar {
+    transition: all 0.3s ease;
+    width: 240px;
+}
+
+.sidebar.collapsed {
+    width: 64px;
+}
+
+.content-wrapper {
+    transition: all 0.3s ease;
+}
+
+.section-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Clean boxes for content */
+.clean-box {
+    @apply bg-white rounded-lg shadow-sm border p-4 mb-4;
+}
+
+/* For LaTeX output */
+.formula-block {
+    @apply overflow-x-auto p-3 my-2 bg-gray-50 rounded-md border;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(241, 241, 241, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #5D5CDE;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4a49b0;
+}
+
+/* Code styling */
+.code-block {
+    @apply overflow-hidden rounded-md mb-3 border bg-white;
+}
+
+.code-header {
+    @apply px-3 py-2 bg-gray-50 border-b text-sm text-gray-600 font-medium flex justify-between items-center;
+}
+
+.code-content {
+    @apply p-3 overflow-x-auto font-mono text-sm;
+}
+
+.code-annotation {
+    @apply bg-primary/5 border-l-2 border-primary px-3 py-2 my-2 text-sm;
+}
+
+/* Game grid */
+.game-grid-example {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+    max-width: 260px;
+    margin: 0.5rem auto;
+}
+
+.grid-cell-example {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.start-cell { background-color: #93c5fd; color: #1e40af; }
+.hole-cell { background-color: #fca5a5; color: #7f1d1d; }
+.goal-cell { background-color: #86efac; color: #166534; }
+.safe-cell { background-color: #e5e7eb; color: #1f2937; }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -240px;
+        top: 0;
+        height: 100vh;
+        z-index: 50;
+    }
+    
+    .sidebar.open {
+        left: 0;
+    }
+}
+
+/* Step navigation */
+.step-button {
+    @apply bg-white border px-3 py-1 rounded text-sm font-medium transition-colors;
+}
+
+.step-button:hover {
+    @apply bg-gray-50;
+}
+
+.step-button.active {
+    @apply bg-primary text-white border-primary;
+}

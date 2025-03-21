@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Learning Simulation | Educational Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Load MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="asset/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#6D71F9',
+                        bglight: '#F8F9FC',
+                        cardlight: '#FFFFFF'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'floating': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px 2px rgba(93, 92, 222, 0.3)',
+                        'glow-lg': '0 0 25px 5px rgba(93, 92, 222, 0.4)',
+                        'card': '0 10px 30px -5px rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            }
+        }
+    </script>
+
+</head>
+<body class="bg-bglight min-h-screen flex flex-col">
+    <div class="flex min-h-screen w-full relative">
+        <!-- Mobile sidebar toggle -->
+        <button id="sidebar-toggle" class="mobile-sidebar-toggle fixed top-4 left-4 z-50 bg-white p-3 rounded-full md:hidden shadow-lg border border-gray-100">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar w-72 bg-cardlight border-r border-gray-100 overflow-y-auto">
+            <div class="p-5 border-b border-gray-100 flex flex-col items-center">
+                <!-- Profile picture -->
+                <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-primary shadow-lg mb-4 bg-white">
+                    <img id="profile-photo" src="asset/img/me.png" alt="Abel Yohannes" class="w-full h-full object-cover">
+                </div>
+                
+                <h1 class="text-xl font-bold text-gray-800 tech-font flex items-center">
+                    <i class="fas fa-robot text-primary mr-2"></i>
+                    Q-Learning Lab
+                </h1>
+                <p class="text-sm text-gray-600 mt-1">Interactive Education Platform</p>
+            </div>
+            
+            <nav class="mt-4 px-3">
+                <div class="sidebar-menu-item active p-3 mx-2 cursor-pointer transition-all duration-200" data-section="home">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                            <i class="fas fa-home text-primary"></i>
+                        </div>
+                        <span class="text-gray-700">Home</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-menu-item p-3 mx-2 cursor-pointer transition-all duration-200" data-section="about">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-primary"></i>
+                        </div>
+                        <span class="text-gray-700">About Me</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-menu-item p-3 mx-2 cursor-pointer transition-all duration-200" data-section="game">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                            <i class="fas fa-gamepad text-primary"></i>
+                        </div>
+                        <span class="text-gray-700">Simulation</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-menu-item p-3 mx-2 cursor-pointer transition-all duration-200" data-section="theory">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                            <i class="fas fa-book text-primary"></i>
+                        </div>
+                        <span class="text-gray-700">Q-Learning Theory</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-menu-item p-3 mx-2 cursor-pointer transition-all duration-200" data-section="qtable">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                            <i class="fas fa-table text-primary"></i>
+                        </div>
+                        <span class="text-gray-700">Q-Table Visualization</span>
+                    </div>
+                </div>
+            </nav>
+            
+            <div class="mt-auto p-4 border-t border-gray-100">
+                <div class="text-xs text-gray-500">
+                    <p>Version 1.1.0</p>
+                    <p class="mt-1">© 2024 Abel Yohannes</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="content-area flex-1 overflow-y-auto">
+            <!-- Home Section -->
+            <section id="home" class="section-content p-4 md:p-8">
+                <div class="max-w-4xl mx-auto">
+                    <div class="modern-card p-6 mb-6">
+                        <div class="flex items-center mb-6">
+                            <div class="mr-4 text-4xl text-primary">
+                                <i class="fas fa-robot animate-bounce-slow"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 tech-font">Welcome to Q-Learning Lab</h2>
+                                <div class="h-1 w-24 bg-gradient-to-r from-primary to-secondary rounded mt-1"></div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-700 mb-6 leading-relaxed">
+                            This interactive platform is designed to help you understand Reinforcement Learning, specifically 
+                            Q-learning and the Epsilon-Greedy algorithm through hands-on experimentation and visualization.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                            <div class="hover-card p-5 flex flex-col">
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-graduation-cap text-xl text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary mb-2">
+                                    Learn by Doing
+                                </h3>
+                                <p class="text-gray-700 text-sm flex-1">
+                                    Interact with a live simulation to see how agents learn optimal paths through trial and error.
+                                </p>
+                                <div class="progress-indicator mt-4">
+                                    <div class="progress" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="hover-card p-5 flex flex-col">
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-square-root-alt text-xl text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary mb-2">
+                                    Mathematical Foundation
+                                </h3>
+                                <p class="text-gray-700 text-sm flex-1">
+                                    Understand the underlying mathematics from Bellman equations to Q-learning algorithms.
+                                </p>
+                                <div class="progress-indicator mt-4">
+                                    <div class="progress" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="hover-card p-5 flex flex-col">
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-chart-line text-xl text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary mb-2">
+                                    Visualize Learning
+                                </h3>
+                                <p class="text-gray-700 text-sm flex-1">
+                                    Watch Q-tables update in real-time as agents explore and learn from their environment.
+                                </p>
+                                <div class="progress-indicator mt-4">
+                                    <div class="progress" style="width: 90%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-white border border-primary/20 flex items-center justify-center text-primary mr-4">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary">Get Started</h3>
+                            </div>
+                            
+                            <p class="text-gray-700 mb-3">
+                                Navigate through the sections using the sidebar to:
+                            </p>
+                            <div class="space-y-3 ml-2 mb-5">
+                                <div class="flex items-center">
+                                    <div class="progress-circle active">1</div>
+                                    <div class="text-gray-700">Run simulations with different parameters</div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="progress-circle active">2</div>
+                                    <div class="text-gray-700">Study the mathematical theory with interactive examples</div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="progress-circle">3</div>
+                                    <div class="text-gray-700">Visualize Q-table updates in real-time</div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="progress-circle">4</div>
+                                    <div class="text-gray-700">Explore different reinforcement learning concepts</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-5 flex justify-center">
+                                <button id="goto-simulation-btn" class="animated-button bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-8 rounded-lg transition flex items-center shadow-md">
+                                    <i class="fas fa-play mr-2"></i> Start Simulation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modern-card p-6">
+                        <h2 class="text-xl font-bold text-gray-900 tech-font flex items-center mb-4">
+                            <i class="fas fa-brain text-primary mr-3"></i>
+                            <span>About Reinforcement Learning</span>
+                        </h2>
+                        <div class="h-1 w-32 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <p class="text-gray-700 mb-6 leading-relaxed">
+                            Reinforcement Learning is a type of machine learning where an agent learns to make decisions
+                            by taking actions in an environment to maximize cumulative reward. Unlike supervised learning, 
+                            the agent is not told which actions to take but must discover which actions yield the highest reward 
+                            through trial and error.
+                        </p>
+                        
+                        <div class="flex justify-center my-8">
+                            <div class="relative">
+                                <img src="asset/img/RL.jpg" alt="Reinforcement Learning Diagram" 
+                                     class="max-w-full h-auto rounded-xl shadow-md border border-gray-100" style="max-height: 250px">
+                                <div class="absolute -top-3 -right-3 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+                                    RL Process
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="clean-box">
+                            <div class="flex items-center mb-3">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                    <i class="fas fa-lightbulb text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">Q-learning in a Nutshell</h3>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed">
+                                Q-learning is a model-free reinforcement learning algorithm that learns the value of an action
+                                in a particular state. It works by learning an action-value function (Q-function) that gives the expected
+                                utility of taking a given action in a given state and following a fixed policy thereafter.
+                            </p>
+                            
+                            <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div class="bg-white p-4 rounded-lg text-center shadow-sm border border-gray-100">
+                                    <div class="text-primary text-xl mb-1">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-700">States</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg text-center shadow-sm border border-gray-100">
+                                    <div class="text-primary text-xl mb-1">
+                                        <i class="fas fa-arrows-alt"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-700">Actions</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg text-center shadow-sm border border-gray-100">
+                                    <div class="text-primary text-xl mb-1">
+                                        <i class="fas fa-gift"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-700">Rewards</div>
+                                </div>
+                            </div>
+
+
+
+                            <div style="font-family: 'Arial', sans-serif; font-size: 16px; color: #333; line-height: 1.6; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                                <h2 style="font-size: 24px; color: #007BFF; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);">
+                                    Explore <strong style="color: #0056b3;">RL Tutorial</strong>
+                                </h2>
+                                <p style="margin-bottom: 20px;">
+                                    Dive into the world of Reinforcement Learning with our step-by-step guides and practical code examples. Learn about Q-learning, Deep Q-Networks (DQN), and more advanced techniques to master RL!
+                                </p>
+                                <a href="explain.html" style="display: inline-block; margin-top: 10px; padding: 12px 24px; background-color: #007BFF; color: #fff; text-decoration: none; border-radius: 25px; font-weight: bold; transition: background-color 0.3s ease, transform 0.2s ease; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);">
+                                    Click here for Code Explainer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- About Me Section -->
+            <section id="about" class="section-content p-4 md:p-8 hidden">
+                <div class="max-w-4xl mx-auto">
+                    <div class="modern-card p-6 mb-6">
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="md:w-1/3">
+                                <div class="rounded-xl overflow-hidden border-4 border-white shadow-md">
+                                    <img id="profile-photo-large" src="asset/img/me2.jpg" alt="Abel Yohannes" class="w-full h-auto">
+                                </div>
+                                
+                                <div class="mt-6 clean-box">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Connect With Me</h3>
+                                    <div class="grid grid-cols-4 gap-3">
+                                        <a href="#" class="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-all border border-primary/10">
+                                            <i class="fab fa-linkedin-in text-xl"></i>
+                                        </a>
+                                        <a href="#" class="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-all border border-primary/10">
+                                            <i class="fab fa-github text-xl"></i>
+                                        </a>
+                                        <a href="#" class="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-all border border-primary/10">
+                                            <i class="fab fa-twitter text-xl"></i>
+                                        </a>
+                                        <a href="#" class="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-all border border-primary/10">
+                                            <i class="fas fa-envelope text-xl"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="md:w-2/3">
+                                <h2 class="text-2xl font-bold text-gray-900 tech-font mb-2">Abel Yohannes</h2>
+                                <div class="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded mb-4"></div>
+                                
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">Computer Engineering</span>
+                                    <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">AI Researcher</span>
+                                    <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">Educator</span>
+                                </div>
+                                
+                                <p class="text-gray-700 mb-4 leading-relaxed">
+                                    I'm a Computer Engineering graduate from Jimma University (Class of 2023) with a passion 
+                                    for Artificial Intelligence and a growing interest in financial systems. My research 
+                                    focuses on reinforcement learning algorithms and their applications in real-world problems.
+                                </p>
+                                
+                                <p class="text-gray-700 mb-4 leading-relaxed">
+                                    I created this interactive Q-learning platform to help students and professionals 
+                                    understand the foundational concepts of reinforcement learning through visual and 
+                                    interactive examples. My goal is to make complex mathematical concepts more accessible 
+                                    and intuitive.
+                                </p>
+                                
+                                <div class="mt-6 border-t border-gray-100 pt-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">My Expertise</h3>
+                                    
+                                    <div class="space-y-4">
+                                        <div>
+                                            <div class="flex justify-between mb-1">
+                                                <span class="text-sm font-medium text-gray-700">Machine Learning</span>
+                                                <span class="text-sm text-primary font-semibold">95%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                <div class="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full" style="width: 95%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <div class="flex justify-between mb-1">
+                                                <span class="text-sm font-medium text-gray-700">Reinforcement Learning</span>
+                                                <span class="text-sm text-primary font-semibold">90%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                <div class="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full" style="width: 90%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <div class="flex justify-between mb-1">
+                                                <span class="text-sm font-medium text-gray-700">Web Development</span>
+                                                <span class="text-sm text-primary font-semibold">85%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                <div class="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full" style="width: 85%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <div class="flex justify-between mb-1">
+                                                <span class="text-sm font-medium text-gray-700">Fintech Solutions</span>
+                                                <span class="text-sm text-primary font-semibold">80%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                                <div class="bg-gradient-to-r from-primary to-secondary h-2.5 rounded-full" style="width: 80%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modern-card p-6">
+                        <h2 class="text-xl font-bold text-gray-900 tech-font mb-2">Research Projects</h2>
+                        <div class="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="hover-card p-5 border border-gray-100">
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-brain text-xl text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary mb-2">Q-Learning in Dynamic Environments</h3>
+                                <p class="text-gray-700 text-sm">
+                                    Research focused on how Q-learning algorithms can adapt to changing environment conditions
+                                    and maintain performance through adaptive learning rates and exploration strategies.
+                                </p>
+                                <div class="mt-4 flex justify-end">
+                                    <span class="text-xs font-medium py-1 px-2 bg-primary/10 text-primary rounded-full">2022-2023</span>
+                                </div>
+                            </div>
+                            
+                            <div class="hover-card p-5 border border-gray-100">
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-chart-line text-xl text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary mb-2">Fintech Applications of RL</h3>
+                                <p class="text-gray-700 text-sm">
+                                    Exploring how reinforcement learning can be applied to algorithmic trading and financial
+                                    decision-making systems to optimize performance under varying market conditions.
+                                </p>
+                                <div class="mt-4 flex justify-end">
+                                    <span class="text-xs font-medium py-1 px-2 bg-primary/10 text-primary rounded-full">2023-Present</span>
+                                </div>
+                            </div>
+                            
+                            <div class="hover-card p-5 border border-gray-100">
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-graduation-cap text-xl text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-primary mb-2">Educational Tools for AI Learning</h3>
+                                <p class="text-gray-700 text-sm">
+                                    Development of interactive educational platforms that make complex AI concepts accessible
+                                    to students and professionals through visual simulations and guided learning paths.
+                                </p>
+                                <div class="mt-4 flex justify-end">
+                                    <span class="text-xs font-medium py-1 px-2 bg-primary/10 text-primary rounded-full">2023-Present</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Game Simulation Section -->
+            <section id="game" class="section-content p-4 md:p-8 hidden">
+                <div class="max-w-6xl mx-auto">
+                    <div class="modern-card p-6 mb-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 tech-font">Q-Learning Simulation</h2>
+                                <div class="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded mt-1"></div>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button id="reset-simulation-btn" class="animated-button bg-white border border-primary text-primary hover:bg-primary/5 text-sm py-2 px-4 rounded-lg transition flex items-center">
+                                    <i class="fas fa-sync-alt mr-2"></i> Reset
+                                </button>
+                                <button id="toggle-auto-btn" class="animated-button bg-primary hover:bg-primary/90 text-white text-sm py-2 px-4 rounded-lg transition flex items-center shadow-md">
+                                    <i class="fas fa-play mr-2"></i> Auto-Play
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <!-- Simulation Grid -->
+                            <div class="lg:w-1/2">
+                                <div class="clean-box">
+                                    <div class="flex justify-between items-center mb-5">
+                                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                                            <i class="fas fa-cube text-primary mr-2"></i> 
+                                            Environment
+                                        </h3>
+                                        <div class="flex items-center bg-white py-1 px-3 rounded-full shadow-sm border border-gray-100">
+                                            <span class="text-sm text-gray-600">Episode: </span>
+                                            <span id="episode-counter" class="font-semibold text-primary ml-1">0</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="simulation-container" class="relative aspect-square max-w-md mx-auto border border-gray-200 rounded-xl overflow-hidden shadow-md bg-white">
+                                        <div id="grid-container" class="grid grid-cols-5 grid-rows-5 w-full h-full">
+                                            <!-- Grid cells will be generated by JS -->
+                                        </div>
+                                        
+                                        <div id="agent-element" class="absolute transition-all duration-300 flex items-center justify-center" style="width: 20%; height: 20%;">
+                                            <div class="agent">
+                                                <div class="agent-eye"></div>
+                                                <div class="agent-mouth"></div>
+                                                <div class="agent-shadow"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Outcome screens -->
+                                        <div id="win-screen" class="absolute inset-0 bg-black/80 flex items-center justify-center flex-col hidden z-20">
+                                            <div class="text-6xl mb-4 animate-bounce-slow">🎉</div>
+                                            <h3 class="text-primary text-xl font-bold mb-3 tech-font">GOAL REACHED!</h3>
+                                            <p class="text-white text-center">
+                                                The agent found an optimal path!
+                                            </p>
+                                        </div>
+                                        
+                                        <div id="fall-screen" class="absolute inset-0 bg-black/80 flex items-center justify-center flex-col hidden z-20">
+                                            <div class="text-6xl mb-4 animate-pulse-slow">💥</div>
+                                            <h3 class="text-red-500 text-xl font-bold mb-3 tech-font">AGENT FAILED</h3>
+                                            <p class="text-white text-center">
+                                                Learning from mistakes...
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex flex-wrap justify-center mt-6 gap-4">
+                                        <div class="flex items-center bg-white py-1 px-3 rounded-lg shadow-sm border border-gray-100">
+                                            <div class="w-4 h-4 safe-ice rounded-sm mr-2 border border-gray-200"></div>
+                                            <span class="text-sm text-gray-700">Safe</span>
+                                        </div>
+                                        <div class="flex items-center bg-white py-1 px-3 rounded-lg shadow-sm border border-gray-100">
+                                            <div class="w-4 h-4 hole rounded-sm mr-2"></div>
+                                            <span class="text-sm text-gray-700">Hole</span>
+                                        </div>
+                                        <div class="flex items-center bg-white py-1 px-3 rounded-lg shadow-sm border border-gray-100">
+                                            <div class="w-4 h-4 goal-cell rounded-sm mr-2"></div>
+                                            <span class="text-sm text-gray-700">Goal</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-2 mt-8">
+                                        <div></div>
+                                        <button id="move-up-btn" class="bg-white hover:bg-primary/5 text-gray-800 py-3 rounded-lg flex items-center justify-center shadow-sm transition-all border border-gray-100">
+                                            <i class="fas fa-chevron-up"></i>
+                                        </button>
+                                        <div></div>
+                                        <button id="move-left-btn" class="bg-white hover:bg-primary/5 text-gray-800 py-3 rounded-lg flex items-center justify-center shadow-sm transition-all border border-gray-100">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button id="move-down-btn" class="bg-white hover:bg-primary/5 text-gray-800 py-3 rounded-lg flex items-center justify-center shadow-sm transition-all border border-gray-100">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <button id="move-right-btn" class="bg-white hover:bg-primary/5 text-gray-800 py-3 rounded-lg flex items-center justify-center shadow-sm transition-all border border-gray-100">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Parameters & Live Q-Values -->
+                            <div class="lg:w-1/2">
+                                <div class="clean-box">
+                                    <h3 class="text-lg font-semibold text-gray-800 flex items-center mb-4">
+                                        <i class="fas fa-sliders-h text-primary mr-2"></i>
+                                        Learning Parameters
+                                    </h3>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                Learning Rate (α)
+                                                <span class="tooltip ml-1 text-gray-500">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    <span class="tooltip-text">Controls how much new information overrides old information. Higher values make the agent learn faster.</span>
+                                                </span>
+                                            </label>
+                                            <div class="flex items-center">
+                                                <input type="range" id="learning-rate" min="0.1" max="1" step="0.1" value="0.7" 
+                                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                                <span id="learning-rate-value" class="text-primary font-semibold ml-2 w-10 text-center">0.7</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                Discount Factor (γ)
+                                                <span class="tooltip ml-1 text-gray-500">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    <span class="tooltip-text">Determines the importance of future rewards. Higher values make the agent consider long-term rewards more.</span>
+                                                </span>
+                                            </label>
+                                            <div class="flex items-center">
+                                                <input type="range" id="discount-factor" min="0.1" max="0.99" step="0.01" value="0.9" 
+                                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                                <span id="discount-factor-value" class="text-primary font-semibold ml-2 w-10 text-center">0.9</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                Exploration Rate (ε)
+                                                <span class="tooltip ml-1 text-gray-500">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    <span class="tooltip-text">Probability of taking a random action instead of the best known action. Higher values increase exploration.</span>
+                                                </span>
+                                            </label>
+                                            <div class="flex items-center">
+                                                <input type="range" id="exploration-rate" min="0.01" max="1" step="0.01" value="0.3" 
+                                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                                <span id="exploration-rate-value" class="text-primary font-semibold ml-2 w-10 text-center">0.3</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                Exploration Decay
+                                                <span class="tooltip ml-1 text-gray-500">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    <span class="tooltip-text">Rate at which exploration decreases over time. Higher values make the agent become more exploitative faster.</span>
+                                                </span>
+                                            </label>
+                                            <div class="flex items-center">
+                                                <input type="range" id="exploration-decay" min="0.9" max="0.999" step="0.001" value="0.98" 
+                                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                                <span id="exploration-decay-value" class="text-primary font-semibold ml-2 w-10 text-center">0.98</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 class="text-lg font-semibold text-gray-800 flex items-center mb-3">
+                                        <i class="fas fa-table text-primary mr-2"></i>
+                                        Live Q-Values
+                                    </h3>
+                                    
+                                    <div class="bg-white p-4 rounded-lg shadow-sm mb-5 q-table-wrapper border border-gray-100">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <div class="text-sm font-medium text-gray-700">
+                                                Q-Table (States × Actions): 25 × 4
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button id="show-full-qtable-btn" class="text-xs bg-primary/10 hover:bg-primary/20 text-primary py-1 px-2 rounded">
+                                                    <i class="fas fa-expand-alt"></i> Full View
+                                                </button>
+                                                <button id="show-compact-qtable-btn" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded">
+                                                    <i class="fas fa-compress-alt"></i> Compact
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <table class="min-w-full border-collapse q-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="p-2 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200 rounded-tl-lg">
+                                                        State
+                                                    </th>
+                                                    <th class="p-2 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                                        <i class="fas fa-arrow-up mr-1"></i> Up (0)
+                                                    </th>
+                                                    <th class="p-2 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                                        <i class="fas fa-arrow-right mr-1"></i> Right (1)
+                                                    </th>
+                                                    <th class="p-2 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                                        <i class="fas fa-arrow-down mr-1"></i> Down (2)
+                                                    </th>
+                                                    <th class="p-2 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200 rounded-tr-lg">
+                                                        <i class="fas fa-arrow-left mr-1"></i> Left (3)
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="q-table-body">
+                                                <!-- Q-values will be inserted here by JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="mb-5">
+                                        <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                            <i class="fas fa-code text-primary mr-2"></i>
+                                            Latest Q-Update
+                                        </h4>
+                                        <div id="q-update-formula" class="bg-white p-3 rounded-lg text-sm font-mono text-gray-700 overflow-x-auto shadow-sm border border-gray-100"></div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                            <i class="fas fa-chart-bar text-primary mr-2"></i>
+                                            Statistics
+                                        </h4>
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            <div class="bg-white p-3 rounded-lg text-center shadow-sm hover:shadow transition-all border border-gray-100">
+                                                <div class="text-xs text-gray-500">Total Episodes</div>
+                                                <div id="stat-episodes" class="text-xl font-bold text-primary">0</div>
+                                            </div>
+                                            <div class="bg-white p-3 rounded-lg text-center shadow-sm hover:shadow transition-all border border-gray-100">
+                                                <div class="text-xs text-gray-500">Success Rate</div>
+                                                <div id="stat-success-rate" class="text-xl font-bold text-primary">0%</div>
+                                            </div>
+                                            <div class="bg-white p-3 rounded-lg text-center shadow-sm hover:shadow transition-all border border-gray-100">
+                                                <div class="text-xs text-gray-500">Avg. Steps</div>
+                                                <div id="stat-avg-steps" class="text-xl font-bold text-primary">0</div>
+                                            </div>
+                                            <div class="bg-white p-3 rounded-lg text-center shadow-sm hover:shadow transition-all border border-gray-100">
+                                                <div class="text-xs text-gray-500">Current ε</div>
+                                                <div id="stat-current-epsilon" class="text-xl font-bold text-primary">0.30</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Episode Details -->
+                    <div class="modern-card p-6">
+                        <h2 class="text-xl font-bold text-gray-900 tech-font mb-4 flex items-center">
+                            <i class="fas fa-microscope text-primary mr-2"></i>
+                            Episode Analysis
+                        </h2>
+                        <div class="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <div class="lg:w-1/2">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-sitemap text-primary mr-2"></i>
+                                    Decision Process
+                                </h3>
+                                <div id="episode-log" class="bg-white p-4 rounded-lg h-64 overflow-y-auto text-sm text-gray-700 border border-gray-100 shadow-sm">
+                                    <div class="text-gray-500 italic">Episode log will appear here...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="lg:w-1/2">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-calculator text-primary mr-2"></i>
+                                    Q-Learning Steps
+                                </h3>
+                                <div id="q-learning-steps" class="bg-white p-4 rounded-lg h-64 overflow-y-auto text-sm text-gray-700 border border-gray-100 shadow-sm">
+                                    <div class="text-gray-500 italic">Q-learning calculations will appear here...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- Q-Learning Theory Section -->
+            <section id="theory" class="section-content p-4 md:p-8 hidden">
+                <div class="max-w-4xl mx-auto">
+                    <div class="modern-card p-6 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2 tech-font">Q-Learning: Mathematical Foundation</h2>
+                        <div class="h-1 w-32 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <div class="space-y-6">
+                            <div class="clean-box bg-gradient-to-r from-primary/5 to-primary/10">
+                                <h1 class="text-gray-800 text-center text-3xl font-semibold mb-4">Reinforcement Learning (RL) Explained</h1>
+                                <p class="text-gray-700 leading-relaxed">
+                                    Reinforcement learning is an adaptive process in which an animal utilizes its previous experience to improve the outcomes of future choices. Computational theories of reinforcement learning play a central role in the newly emerging areas of neuroeconomics and decision neuroscience. In this framework, <strong>actions are chosen according to their value functions</strong>, which describe how much future reward is expected from each action. <strong> Value functions can be adjusted not only through reward and penalty, but also by the animal's knowledge of its current environment.</strong> Studies have revealed that a large proportion of the brain is involved in representing and updating value functions and using them to choose an action. However, how the nature of a behavioral task affects the neural mechanisms of reinforcement learning remains incompletely understood. Future studies should uncover the principles by which different computational elements of reinforcement learning are dynamically coordinated across the entire brain.
+                                </p>
+
+                                <div class="container text-center my-4">
+                                    <iframe width="560" height="315" src="https://www.youtube.com/embed/zl-MvcYQL0Q" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="mx-auto d-block"></iframe>
+                                    <h2>Here is some video for Mind Refereshing ...</h2>
+                                </div>
+
+
+                                <div class="mt-6">
+                                    <h2 class="text-gray-800 text-xl font-semibold mb-2">Model-free vs. model-based reinforcement learning</h2>
+                                    <p class="text-gray-700 leading-relaxed">
+                                        The brain's ability to learn from rewards and punishments, a process known as reinforcement learning (RL), can be elegantly described using mathematical frameworks. This article will guide you through the mathematical foundations of RL, starting with basic concepts and progressing to advanced techniques employed in modeling neural circuits.
+                                    </p>
+
+                                    <p class="text-gray-700 leading-relaxed">
+
+                                        In reinforcement learning, <strong>value functions</strong> help predict how rewarding an action or state will be. These functions can be updated in two main ways: through <strong>model-free</strong> and <strong>model-based</strong> learning. Let’s break this down using simple math.</p>
+
+                                    </p>
+                         
+
+                                    <h2 class="text-gray-800 text-xl font-semibold mb-1">1. Model-Free Learning: Updating with Reward Prediction Errors</h2>
+                                    <p class="text-gray-700 leading-relaxed">In <strong>model-free learning</strong>, value functions are updated based on the difference between the <strong>actual reward</strong> and the <strong>expected reward</strong>. This difference is called the <strong>reward prediction error (RPE)</strong>.  In a class of reinforcement learning algorithms, referred to as simple or model-free reinforcement learning, reward prediction error is the primary source of changes in value functions. More specifically, the value function for the action chosen by the animal or the state visited by the animal is updated according to the reward prediction error, while the value functions for all other actions and states remain unchanged or simply decay passively</p><br>
+
+                                    <ul style="list-style-type: disc; padding-left: 20px;">
+                                        <li style="color: #4a5568; margin-bottom: 10px;">Let \( V(s) \) be the value of a state \( s \).</li>
+                                        <li style="color: #4a5568; margin-bottom: 10px;">Let \( r \) be the actual reward received.</li>
+                                        <li style="color: #4a5568; margin-bottom: 10px;">Let \( \gamma \) be a discount factor (how much we care about future rewards).</li>
+                                        <li style="color: #4a5568; margin-bottom: 10px;">Let \( V(s') \) be the value of the next state \( s' \).</li>
+                                    </ul>
+                                    
+                                    <p style="color: #4a5568;">The reward prediction error (\( \delta \)) is calculated as:</p>
+                                    <p class="math">\[
+                                    \delta = r + \gamma V(s') - V(s)
+                                    \]</p>
+
+
+                                    <p class="text-gray-700 leading-relaxed">
+                                        This error tells us how wrong our prediction was. If \( \delta \) is positive, the reward was better than expected, so we increase \( V(s) \). If \( \delta \) is negative, the reward was worse, so we decrease \( V(s) \).
+                                    </p>
+                                    <p class="text-gray-700 leading-relaxed">The value function is updated as:</p>
+                                    <p class="math">\[
+                                    V(s) \leftarrow V(s) + \alpha \delta
+                                    \]</p>
+
+                                    <p class="text-gray-700 leading-relaxed">Here, \( \alpha \) is a learning rate (how quickly we update our predictions).</p><br>
+
+
+
+
+                                    <h2 class="text-gray-800 text-xl font-semibold mb-1">2. Model-Based Learning: Using Knowledge and Simulation</h2>
+                                    <p class="text-gray-700 leading-relaxed">In the second class of reinforcement learning, referred to as model-based reinforcement learning, value functions can be changed more flexibly. These algorithms can update the value functions on the basis of the animal’s motivational state and its knowledge of the environment without direct reward or penalty. The use of cognitive models allows the animal to adjust its value functions immediately, whenever it acquires a new piece of information about its internal state or external environment. There are many lines of evidence that animals as well as humans are capable of model-based reinforcement learning. For example, when an animal is satiated for a particular type of reward, the subjective value of the same food would be diminished. However, if the animal relies entirely on simple reinforcement learning, the tendency to choose a given action would not change until it experiences the devalued reward through the same action. Previous work has shown that rats can change their behaviors immediately according to their current motivational states following the devaluation of specific food items. This is often used as a test for goal-directed behaviors, and indicates that animals are indeed capable of model-based reinforcement learning. Humans and animals can also simulate the consequences of potential actions that they could have chosen. This is referred to as counterfactual thinking, and the information about hypothetical outcomes from unchosen actions can be incorporated into value functions when they are different from the outcomes predicted by the current value functions. Analogous to reward prediction error, the difference between hypothetical and predicted outcomes is referred to as fictive or counterfactual reward prediction error.</p><br>
+
+                                    <p class="text-gray-700 leading-relaxed">For example:</p>
+                                    <ul>
+                                    <li class="text-gray-700 leading-relaxed">If an animal is no longer hungry, it can <strong>immediately reduce</strong> the value of food-related actions, even without directly experiencing the devalued reward. This ability demonstrates how <strong>decision-making</strong> is not solely based on immediate feedback but also on <strong>internal states</strong> and <strong>learned associations</strong>. For instance, if a rat has learned that pressing a lever results in food, but it is no longer hungry, it can quickly devalue the action of pressing the lever because the reward (food) is no longer desirable. This process highlights the <strong>flexibility</strong> and <strong>adaptability</strong> of decision-making systems in both animals and humans.</li>
+                                    <li class="text-gray-700 leading-relaxed">Humans and animals can also simulate <strong>hypothetical outcomes</strong> of actions they didn’t take. This is called <strong>counterfactual thinking</strong>. Counterfactual thinking allows individuals to <strong>imagine alternative scenarios</strong> and outcomes, which can be used to evaluate past decisions or plan future actions. For example, if a person chooses to take a different route to work and gets stuck in traffic, they might imagine how much faster they would have arrived if they had taken their usual route. This <strong>mental simulation</strong> helps in learning from experiences and improving future decision-making.</li>
+                                    </ul>
+                                    <p class="text-gray-700 leading-relaxed">The difference between the <strong>hypothetical outcome</strong> (what could have happened) and the <strong>predicted outcome</strong> (what was expected to happen) is called the <strong>counterfactual reward prediction error</strong>. This concept works similarly to the standard <strong>reward prediction error</strong> but is based on <strong>imagined or counterfactual scenarios</strong> rather than actual experiences. For instance, if someone imagines that taking a different action would have led to a better outcome, the brain calculates the difference between this imagined outcome and the actual outcome. This <strong>counterfactual reward prediction error</strong> can influence future behavior by motivating individuals to adjust their strategies or actions to achieve better results in similar situations. It underscores the importance of <strong>mental simulation</strong> and <strong>imagination</strong> in learning and decision-making processes.</p>
+
+                                </div>
+                        
+                            
+                                <div class="mt-6">
+                                    <h2 class="text-gray-800 text-xl font-semibold mb-2">Conclusion</h2>
+                                    <p class="text-gray-700 leading-relaxed">
+                                        Reinforcement learning is a fundamental process that bridges neuroscience and evolutionary biology. It shapes behaviors that are crucial for survival, reproduction, and adaptation. The New Caledonian crow's ability to use tools and adapt through reinforcement learning highlights the intricate connection between behavior, brain mechanisms, and evolutionary success.
+                                    </p>
+                                </div>
+                            </div>
+
+
+
+
+                            <div class="math-step">
+                                <div class="flex items-start">
+                                   <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mt-1 mr-4 flex-shrink-0">
+                                      <i class="fas fa-dice-d6 text-primary"></i>
+                                   </div>
+                                   <div>
+                                      <h3 class="text-lg font-semibold text-primary mb-3">Markov Decision Process (MDP)</h3>
+                                      <p class="text-gray-700 mb-3">
+                                         In <strong>Reinforcement Learning</strong>, an agent operates in an environment modeled as a <strong>Markov Decision Process (MDP)</strong>. The MDP is defined as a 5-tuple \( \langle S, A, P, R, \gamma \rangle \), where:
+                                      </p>
+                                      <div class="formula-container" id="mdp-formula">
+                                         $$ \text{MDP} = \langle S, A, P, R, \gamma \rangle $$
+                                      </div>
+                                      <ul class="list-disc list-inside text-gray-700 mt-4 space-y-1">
+                                         <li><strong>S:</strong> Set of states \( s \in S \).</li>
+                                         <li><strong>A:</strong> Set of actions \( a \in A(s) \), where \( A(s) \) is the set of actions available at state \( s \).</li>
+                                         <li><strong>P:</strong> State transition probability \( P(s'|s, a) \), representing the probability of transitioning from state \( s \) to state \( s' \) upon action \( a \).</li>
+                                         <li><strong>R:</strong> Reward function \( R(s, a) \), assigning rewards to state-action pairs.</li>
+                                         <li><strong>\(\gamma\):</strong> Discount factor \( \gamma \in [0, 1] \), influencing the weight of future rewards.</li>
+                                      </ul>
+                                      <h4 class="text-xl font-semibold text-primary mt-6">1. Bellman Expectation Equation</h4>
+                                      <p class="text-gray-700">
+                                         The <strong>Bellman Expectation Equation</strong> computes the value of a state under a given policy \( \pi \), encapsulating the expected return when following that policy. Mathematically, it is expressed as:
+                                      </p>
+                                      <div class="formula-container">
+                                         $$ V^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} P(s'|s, \pi(s)) V^\pi(s') $$
+                                      </div>
+                                      <p class="text-gray-700">
+                                         Alternatively, it can also be written as:
+                                      </p>
+                                      <div class="formula-container">
+                                         $$ V^\pi(s) = \sum_{a} \pi(a|s) \sum_{s'} P(s'|s, a) \left[ R(s, a, s') + \gamma V^\pi(s') \right] $$
+                                      </div>
+                                      <p class="text-gray-700">
+                                         <strong>Steps to calculate:</strong>
+                                      </p>
+                                      <ol class="list-decimal list-inside text-gray-700 mt-4 space-y-1">
+                                         <li><strong>Define the state space (S):</strong> List all the possible states in the environment.</li>
+                                         <li><strong>Define the policy \( \pi \):</strong> The policy \( \pi \) gives the probability of selecting each action \( a \) in each state \( s \).</li>
+                                         <li><strong>Define transition probabilities \( P(s'|s, a) \):</strong> This is the probability of transitioning from state \( s \) to state \( s' \) after taking action \( a \).</li>
+                                         <li><strong>Define the reward function \( R(s, a, s') \):</strong> This is the immediate reward received after taking action \( a \) in state \( s \) and transitioning to state \( s' \).</li>
+                                         <li><strong>Set the discount factor \( \gamma \):</strong> The discount factor controls the importance of future rewards.</li>
+                                      </ol>
+                                      <h1 class="text-xl font-semibold text-primary">The Bellman Equation: A Deep Dive</h1>
+                                      <p class="text-gray-700">
+                                         The <strong>Bellman Equation</strong> is one of the most fundamental concepts in <strong>Reinforcement Learning (RL)</strong>. It provides a recursive decomposition of the <strong>value function</strong>, which is used to evaluate how good it is for an agent to be in a particular state (or how good it is to take a particular action in a state). The Bellman Equation is the backbone of many RL algorithms, including <strong>value iteration</strong>, <strong>policy iteration</strong>, and <strong>Q-learning</strong>.
+                                      </p>
+                                      <p class="text-gray-700">
+                                         In this section, we'll break down the Bellman Equation in detail, starting from its intuition and building up to its mathematical formulation. We'll also explore its variants and how it is used in practice.
+                                      </p>
+                                      <h2 class="text-xl font-semibold text-primary">1. What is the Bellman Equation?</h2>
+                                      <p class="text-gray-700">
+                                         The Bellman Equation is a recursive equation that expresses the relationship between the value of a state (or state-action pair) and the values of its successor states. It is based on the principle of <strong>dynamic programming</strong>, which breaks down complex problems into simpler subproblems.
+                                      </p>
+                                      <p class="text-gray-700">
+                                         In RL, the Bellman Equation is used to compute the <strong>value function</strong> \( V(s) \) or the <strong>Q-function</strong> \( Q(s, a) \), which represent the expected cumulative reward an agent can achieve from a given state (or state-action pair).
+                                      </p>
+                                      <h4 class="text-xl font-semibold text-primary">Key Concepts</h4>
+                                      <p class="text-gray-700">
+                                         Before diving into the Bellman Equation, let's revisit some key concepts:
+                                      </p>
+                                      <h3 class="text-lg font-semibold text-primary">Value Function \( V(s) \):</h3>
+                                      <p class="text-gray-700">
+                                         The value function \( V(s) \) represents the expected cumulative reward an agent can achieve starting from state \( s \) and following a policy \( \pi \). It is defined as:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         V^\pi(s) = \mathbb{E}_\pi \left[ G_t \mid S_t = s \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">Where:</p>
+                                      <ul class="text-gray-700">
+                                         <div class="formula-container">
+                                            <li>\( G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots \) is the <strong>return</strong> (cumulative discounted reward).</li>
+                                            <li>\( \gamma \) is the <strong>discount factor</strong> (between 0 and 1), which determines the importance of future rewards.</li>
+                                         </div>
+                                      </ul>
+                                      <h3 class="text-lg font-semibold text-primary">Q-Function \( Q(s, a) \):</h3>
+                                      <p class="text-gray-700">
+                                         The Q-function \( Q(s, a) \) represents the expected cumulative reward for taking action \( a \) in state \( s \) and then following policy \( \pi \). It is defined as:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         Q^\pi(s, a) = \mathbb{E}_\pi \left[ G_t \mid S_t = s, A_t = a \right]
+                                         \]
+                                      </div>
+                                      <h4 class="text-xl font-semibold text-primary"> Bellman Equation for the Value Function</h4>
+                                      <p class="text-gray-700">
+                                         The Bellman Equation for the value function \( V^\pi(s) \) expresses the value of a state \( s \) in terms of the values of its successor states \( s' \). It is derived from the recursive nature of the return \( G_t \):
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         G_t = R_{t+1} + \gamma G_{t+1}
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         Using this, we can write the value function as:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         V^\pi(s) = \mathbb{E}_\pi \left[ R_{t+1} + \gamma G_{t+1} \mid S_t = s \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         Expanding this expectation, we get:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         V^\pi(s) = \mathbb{E}_\pi \left[ R_{t+1} + \gamma V^\pi(S_{t+1}) \mid S_t = s \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         This is the <strong>Bellman Expectation Equation</strong> for the value function. It states that the value of a state \( s \) is the expected immediate reward plus the discounted value of the next state \( S_{t+1} \).
+                                      </p>
+                                      <h3 class="text-lg font-semibold text-primary">Mathematical Formulation:</h3>
+                                      <p class="text-gray-700">
+                                         For a given policy \( \pi \), the Bellman Equation for \( V^\pi(s) \) is:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         V^\pi(s) = \sum_{a} \pi(a|s) \sum_{s'} P(s' | s, a) \left[ R(s, a, s') + \gamma V^\pi(s') \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">Where:</p>
+                                      <ul class="text-gray-700">
+                                         <li>\( \pi(a|s) \) is the probability of taking action \( a \) in state \( s \) under policy \( \pi \).</li>
+                                         <li>\( P(s' | s, a) \) is the transition probability of moving to state \( s' \) from state \( s \) after taking action \( a \).</li>
+                                         <li>\( R(s, a, s') \) is the reward received after transitioning from \( s \) to \( s' \) due to action \( a \).</li>
+                                      </ul>
+                                      <h4 class="text-xl font-semibold text-primary">Bellman Equation for the Q-Function</h4>
+                                      <p class="text-gray-700">
+                                         Similarly, the Bellman Equation for the Q-function \( Q^\pi(s, a) \) expresses the value of a state-action pair \( (s, a) \) in terms of the values of subsequent state-action pairs. It is given by:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         Q^\pi(s, a) = \mathbb{E}_\pi \left[ R_{t+1} + \gamma Q^\pi(S_{t+1}, A_{t+1}) \mid S_t = s, A_t = a \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         Expanding this expectation, we get:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         Q^\pi(s, a) = \sum_{s'} P(s' | s, a) \left[ R(s, a, s') + \gamma \sum_{a'} \pi(a'|s') Q^\pi(s', a') \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         This equation states that the value of taking action \( a \) in state \( s \) is the expected immediate reward plus the discounted value of the next state-action pair \( (s', a') \).
+                                      </p>
+                                      <h4 class="text-xl font-semibold text-primary">Bellman Optimality Equation</h4>
+                                      <p class="text-gray-700">
+                                         The <strong>Bellman Optimality Equation</strong> is a special case of the Bellman Equation that applies to the <strong>optimal value function</strong> \( V^*(s) \) and the <strong>optimal Q-function</strong> \( Q^*(s, a) \). These represent the maximum expected cumulative reward achievable from a state (or state-action pair) under the optimal policy \( \pi^* \).
+                                      </p>
+                                      <h3 class="text-lg font-semibold text-primary">Bellman Optimality Equation for \( V^*(s) \):</h3>
+                                      <div class="formula-container">
+                                         \[
+                                         V^*(s) = \max_{a} \sum_{s'} P(s' | s, a) \left[ R(s, a, s') + \gamma V^*(s') \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         This equation states that the optimal value of a state \( s \) is the maximum expected immediate reward plus the discounted optimal value of the next state \( s' \).
+                                      </p>
+                                      <h3 class="text-lg font-semibold text-primary">Bellman Optimality Equation for \( Q^*(s, a) \):</h3>
+                                      <div class="formula-container">
+                                         \[
+                                         Q^*(s, a) = \sum_{s'} P(s' | s, a) \left[ R(s, a, s') + \gamma \max_{a'} Q^*(s', a') \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">
+                                         This equation states that the optimal value of a state-action pair \( (s, a) \) is the expected immediate reward plus the discounted optimal value of the next state-action pair \( (s', a') \).
+                                      </p>
+                                      <h4 class="text-xl font-semibold text-primary">Intuition Behind the Bellman Equation</h4>
+                                      <p class="text-gray-700">
+                                         The Bellman Equation is based on the principle of <strong>recursive decomposition</strong>:
+                                      </p>
+                                      <ul class="text-gray-700">
+                                         <li>The value of a state \( s \) depends on the values of its successor states \( s' \).</li>
+                                         <li>This creates a recursive relationship, where the value of each state is defined in terms of the values of other states.</li>
+                                      </ul>
+                                      <p class="text-gray-700">
+                                         The <strong>discount factor \( \gamma \)</strong> plays a crucial role:
+                                      </p>
+                                      <ul class="text-gray-700">
+                                         <li>If \( \gamma = 0 \), the agent only cares about immediate rewards (myopic behavior).</li>
+                                         <li>If \( \gamma \) is close to 1, the agent prioritizes long-term rewards (far-sighted behavior).</li>
+                                      </ul>
+                                      <h4 class="text-xl font-semibold text-primary">Applications of the Bellman Equation</h4>
+                                      <p class="text-gray-700">
+                                         The Bellman Equation is used in many RL algorithms, including:
+                                      </p>
+                                      <h3 class="text-lg font-semibold text-primary">Policy Evaluation:</h3>
+                                      <ul class="text-gray-700">
+                                         <li>Use the Bellman Expectation Equation to compute the value function \( V^\pi(s) \) for a given policy \( \pi \).</li>
+                                      </ul>
+                                      <h3 class="text-lg font-semibold text-primary">Value Iteration:</h3>
+                                      <ul class="text-gray-700">
+                                         <li>Use the Bellman Optimality Equation to iteratively compute the optimal value function \( V^*(s) \).</li>
+                                      </ul>
+                                      <h3 class="text-lg font-semibold text-primary">Q-Learning:</h3>
+                                      <ul class="text-gray-700">
+                                         <li>Use the Bellman Optimality Equation for the Q-function to learn the optimal Q-values \( Q^*(s, a) \).</li>
+                                      </ul>
+                                      <h4 class="text-xl font-semibold text-primary">Example: Solving a Simple MDP with the Bellman Equation</h4>
+                                      <p class="text-gray-700">
+                                         Consider a simple MDP with two states \( S = \{s_1, s_2\} \) and two actions \( A = \{a_1, a_2\} \). The transition probabilities and rewards are as follows:
+                                      </p>
+                                      <ul class="text-gray-700">
+                                         <li>
+                                            From \( s_1 \):
+                                            <ul class="text-gray-700">
+                                               <li>Take \( a_1 \): Move to \( s_2 \) with reward \( +5 \).</li>
+                                               <li>Take \( a_2 \): Stay in \( s_1 \) with reward \( +1 \).</li>
+                                            </ul>
+                                         </li>
+                                         <li>
+                                            From \( s_2 \):
+                                            <ul class="text-gray-700">
+                                               <li>Take \( a_1 \): Move to \( s_1 \) with reward \( +3 \).</li>
+                                               <li>Take \( a_2 \): Stay in \( s_2 \) with reward \( +2 \).</li>
+                                            </ul>
+                                         </li>
+                                      </ul>
+                                      <p class="text-gray-700">
+                                         Assume \( \gamma = 0.9 \).
+                                      </p>
+                                      <h3 class="text-lg font-semibold text-primary">Step 1: Write the Bellman Equation for \( V(s) \):</h3>
+                                      <p class="text-gray-700">
+                                         For each state, write the Bellman Equation:
+                                      </p>
+                                      <div class="formula-container">
+                                         \[
+                                         V(s_1) = \max \left\{ 5 + 0.9 V(s_2), 1 + 0.9 V(s_1) \right\}
+                                         \]
+                                         \[
+                                         V(s_2) = \max \left\{ 3 + 0.9 V(s_1), 2 + 0.9 V(s_2) \right\}
+                                         \]
+                                      </div>
+                                      <h3 class="text-lg font-semibold text-primary">Step 2: Solve the Equations:</h3>
+                                      <p class="text-gray-700">
+                                         Solve the system of equations iteratively or algebraically to find \( V(s_1) \) and \( V(s_2) \).
+                                      </p>
+                                      <h4 class="text-xl font-semibold text-primary mt-6">2. Bellman Optimality Equation</h4>
+                                      <p class="text-gray-700">
+                                         The <strong>Bellman Optimality Equation</strong> provides a way to find the maximum achievable value for each state by selecting the best action \( a \) in every state \( s \), i.e., the optimal policy \( \pi^* \). The equation is:
+                                      </p>
+                                      <div class="formula-container">
+                                         $$ V^*(s) = \max_a \left[ R(s, a) + \gamma \sum_{s'} P(s'|s, a) V^*(s') \right] $$
+                                      </div>
+                                      <h4 class="text-xl font-semibold text-primary mt-6">3. Policy and Greedy Theorem</h4>
+                                      <p class="text-gray-700">
+                                         The <strong>Greedy Theorem</strong> in reinforcement learning posits that an optimal policy can be derived by greedily selecting the action that maximizes expected cumulative rewards at each state. Formally, the optimal policy \( \pi^*(s) \) is:
+                                      </p>
+                                      <div class="formula-container">
+                                         $$ \pi^*(s) = \arg\max_a \left[ R(s, a) + \gamma \sum_{s'} P(s'|s, a) V^*(s') \right] $$
+                                      </div>
+                                      <p class="text-gray-700">
+                                         The greedy theorem says that, to maximize rewards, the agent should always choose the action that provides the highest expected future value, effectively making a local, greedy decision at each state.
+                                      </p>
+                                      <h4 class="text-xl font-semibold text-primary mt-6">4. Q-Learning: A Model-Free RL Algorithm</h4>
+                                      <p class="text-gray-700">
+                                         <strong>Q-Learning</strong> is a popular <strong>model-free</strong> Reinforcement Learning (RL) algorithm that learns the optimal Q-function directly from interactions with the environment. Unlike model-based methods, Q-Learning does not require a model of the environment (i.e., it does not need to know the transition probabilities or reward function). Instead, it learns by exploring the environment and updating its estimates of the Q-values based on the rewards it receives.
+                                      </p>
+                                      <h3 class="text-xl font-semibold text-primary">Q-Learning Update Rule</h3>
+                                      <p class="text-gray-700">The Q-Learning update rule is:</p>
+                                      <div class="formula-container">
+                                         \[
+                                         Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \left[ r_{t+1} + \gamma \max_{a'} Q(s_{t+1}, a') - Q(s_t, a_t) \right]
+                                         \]
+                                      </div>
+                                      <p class="text-gray-700">Where:</p>
+                                      <ul class="text-gray-700">
+                                         <li>\( Q(s_t, a_t) \): The current estimate of the Q-value for state \( s_t \) and action \( a_t \).</li>
+                                         <li>\( \alpha \): The <strong>learning rate</strong> (between 0 and 1), which controls how much new information overrides the old Q-value.</li>
+                                         <li>\( r_{t+1} \): The reward received after taking action \( a_t \) in state \( s_t \).</li>
+                                         <li>\( \gamma \): The <strong>discount factor</strong> (between 0 and 1), which determines the importance of future rewards.</li>
+                                         <li>\( \max_{a'} Q(s_{t+1}, a') \): The maximum Q-value for the next state \( s_{t+1} \), considering all possible actions \( a' \).</li>
+                                      </ul>
+                                      <h3 class="text-xl font-semibold text-primary">How Q-Learning Works</h3>
+                                      <ol class="text-gray-700">
+                                         <li><strong>Initialization</strong>: Initialize the Q-values \( Q(s, a) \) for all states \( s \) and actions \( a \).</li>
+                                         <li><strong>Exploration</strong>: The agent interacts with the environment by taking actions based on an exploration strategy (e.g., \( \epsilon \)-greedy).</li>
+                                         <li><strong>Update</strong>: After each action, the agent observes the reward \( r_{t+1} \) and the next state \( s_{t+1} \). It then updates the Q-value for the current state-action pair \( (s_t, a_t) \) using the Q-Learning update rule.</li>
+                                         <li><strong>Convergence</strong>: Over time, the Q-values converge to the optimal Q-values \( Q^*(s, a) \), which represent the maximum expected cumulative reward for each state-action pair.</li>
+                                      </ol>
+                                      <h3 class="text-xl font-semibold text-primary">Off-Policy Nature of Q-Learning</h3>
+                                      <p class="text-gray-700">Q-Learning is an <strong>off-policy</strong> algorithm, meaning it learns the optimal policy \( \pi^* \) regardless of the agent's actions. This is because the update rule uses the maximum Q-value for the next state \( s_{t+1} \), which corresponds to the optimal action, rather than the action actually taken by the agent.</p>
+                                      <h4 class="text-xl font-semibold text-primary mt-6">5. Deep Q-Networks (DQN)</h4>
+                                      <p class="text-gray-700">
+                                         <strong>Deep Q-Networks (DQN)</strong> extend Q-Learning by using a neural network to approximate the Q-function. This allows the algorithm to handle high-dimensional state spaces, such as images, which are common in real-world applications like robotics and game playing.
+                                      </p>
+                                      <h3 class="text-xl font-semibold text-primary">Key Components of DQN</h3>
+                                      <p class="text-gray-700">DQN introduces two key innovations to stabilize training and improve performance:</p>
+                                      <ol class="text-gray-700">
+                                         <li>
+                                            <strong>Experience Replay</strong>:
+                                            <ul class="text-gray-700">
+                                               <li>A buffer \( D \) that stores past experiences \( (s_t, a_t, r_{t+1}, s_{t+1}) \).</li>
+                                               <li>During training, the agent samples mini-batches of experiences from the buffer to break the correlation between consecutive samples, which improves learning stability.</li>
+                                            </ul>
+                                         </li>
+                                         <li>
+                                            <strong>Target Network</strong>:
+                                            <ul class="text-gray-700">
+                                               <li>A separate neural network with parameters \( \theta^- \) that is used to compute the target Q-values.</li>
+                                               <li>The target network is updated less frequently than the main Q-network, which helps stabilize training by reducing the variability of the target values.</li>
+                                            </ul>
+                                         </li>
+                                      </ol>
+                                      <h3 class="text-xl font-semibold text-primary">DQN Loss Function</h3>
+                                      <div class="formula-container">
+                                         <p class="text-gray-700">The loss function for DQN is:</p>
+                                         <div class="formula-container">
+                                            \[
+                                            L(\theta) = \mathbb{E}_{(s, a, r, s') \sim D} \left[ \left( r + \gamma \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2 \right]
+                                            \]
+                                         </div>
+                                         <p class="text-gray-700">Where:</p>
+                                         <ul class="text-gray-700">
+                                            <li>\( \theta \): The parameters of the main Q-network.</li>
+                                            <li>\( \theta^- \): The parameters of the target network.</li>
+                                            <li>\( D \): The experience replay buffer.</li>
+                                            <li>\( r + \gamma \max_{a'} Q(s', a'; \theta^-) \): The target Q-value, computed using the target network.</li>
+                                            <li>\( Q(s, a; \theta) \): The predicted Q-value, computed using the main Q-network.</li>
+                                         </ul>
+                                      </div>
+                                      <h3 class="text-xl font-semibold text-primary">How DQN Works</h3>
+                                      <ol class="text-gray-700">
+                                         <li><strong>Initialization</strong>: Initialize the main Q-network and the target network with random weights.</li>
+                                         <li><strong>Exploration</strong>: The agent interacts with the environment using an exploration strategy (e.g., \( \epsilon \)-greedy).</li>
+                                         <li><strong>Experience Replay</strong>: Store each experience \( (s_t, a_t, r_{t+1}, s_{t+1}) \) in the replay buffer \( D \).</li>
+                                         <li><strong>Training</strong>: Sample mini-batches of experiences from \( D \) and update the main Q-network by minimizing the loss function \( L(\theta) \).</li>
+                                         <li><strong>Target Network Update</strong>: Periodically update the target network by copying the weights from the main Q-network.</li>
+                                      </ol>
+                                      <h3 class="text-xl font-semibold text-primary">Advantages of DQN</h3>
+                                      <ul class="text-gray-700">
+                                         <li><strong>Handles High-Dimensional State Spaces</strong>: DQN can handle complex inputs like images by using convolutional neural networks (CNNs) to approximate the Q-function.</li>
+                                         <li><strong>Stable Training</strong>: Experience replay and the target network help stabilize training and prevent divergence.</li>
+                                         <li><strong>Off-Policy Learning</strong>: Like Q-Learning, DQN is an off-policy algorithm, meaning it can learn the optimal policy while exploring the environment.</li>
+                                      </ul>
+                                      <h3 class="text-xl font-semibold text-primary">Challenges of DQN</h3>
+                                      <ul class="text-gray-700">
+                                         <li><strong>Computational Complexity</strong>: Training deep neural networks can be computationally expensive.</li>
+                                         <li><strong>Hyperparameter Tuning</strong>: DQN requires careful tuning of hyperparameters like the learning rate, discount factor, and exploration rate.</li>
+                                         <li><strong>Overestimation of Q-Values</strong>: DQN tends to overestimate Q-values, which can lead to suboptimal policies. This issue is addressed in later algorithms like Double DQN.</li>
+                                      </ul>
+                                   </div>
+                                </div>
+                             </div>
+                             
+                            
+
+
+
+
+                        
+                        <div class="mt-10 border-t border-gray-100 pt-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-4 tech-font">Step-by-Step Q-Learning Algorithm</h3>
+                            
+                            <div class="clean-box">
+                                <ol class="space-y-4 text-gray-700">
+                                    <li class="flex">
+                                        <div class="progress-circle active">1</div>
+                                        <div>
+                                            <span class="font-semibold text-primary">Initialize Q-table:</span> Set all Q(s,a) values to 0
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <div class="progress-circle active">2</div>
+                                        <div>
+                                            <span class="font-semibold text-primary">For each episode:</span>
+                                            <ol class="mt-2 ml-6 space-y-3">
+                                                <li class="flex items-center">
+                                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2 text-xs">a</div>
+                                                    <span>Initialize state s</span>
+                                                </li>
+                                                <li class="flex items-start">
+                                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2 text-xs mt-1">b</div>
+                                                    <div>
+                                                        <span>For each step of the episode:</span>
+                                                        <ol class="mt-2 ml-6 space-y-2">
+                                                            <li class="flex items-center">
+                                                                <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs">i</div>
+                                                                <span>Choose action a from s using policy derived from Q (e.g., ε-greedy)</span>
+                                                            </li>
+                                                            <li class="flex items-center">
+                                                                <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs">ii</div>
+                                                                <span>Take action a, observe reward r and next state s'</span>
+                                                            </li>
+                                                            <li class="flex items-start">
+                                                                <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs mt-1">iii</div>
+                                                                <div>
+                                                                    <span>Update Q(s,a):</span>
+                                                                    <div class="broken-latex mt-2 mb-2 ml-1">
+                                                                        <p>In the Q-learning algorithm, the Q-value for a state-action pair \((s, a)\) is updated using the rule:</p>
+                                                                        <p>\[
+                                                                        Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \max_{a'} Q(s', a') - Q(s, a) \right],
+                                                                        \]</p>
+                                                                        <p>where \(\alpha\) is the learning rate, \(r\) is the reward, \(\gamma\) is the discount factor, and \(\max_{a'} Q(s', a')\) represents the maximum Q-value for the next state \(s'\).</p>
+
+
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                            <li class="flex items-center">
+                                                                <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs">iv</div>
+                                                                <span>s ← s'</span>
+                                                            </li>
+                                                            <li class="flex items-center">
+                                                                <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs">v</div>
+                                                                <span>If s is terminal, end episode</span>
+                                                            </li>
+                                                        </ol>
+                                                    </div>
+                                                </li>
+                                                <li class="flex items-center">
+                                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2 text-xs">c</div>
+                                                    <span>Reduce ε according to the decay rate</span>
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modern-card p-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-2 tech-font">Epsilon-Greedy Strategy Explained</h2>
+                        <div class="h-1 w-32 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="md:w-1/2">
+                                <div class="clean-box mb-4 bg-gradient-to-r from-primary/5 to-primary/10">
+                                    <p class="text-gray-700 leading-relaxed">
+                                        The epsilon-greedy strategy is a simple yet effective method for balancing exploration 
+                                        and exploitation in reinforcement learning. Let's break down how it works:
+                                    </p>
+                                </div>
+                                
+                                <h3 class="text-lg font-semibold text-primary mb-3 flex items-center">
+                                    <i class="fas fa-balance-scale mr-2"></i>
+                                    The Exploration-Exploitation Dilemma
+                                </h3>
+                                <p class="text-gray-700 mb-4">
+                                    In reinforcement learning, agents face a fundamental trade-off:
+                                </p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div class="clean-box">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-3">
+                                                <i class="fas fa-search"></i>
+                                            </div>
+                                            <h4 class="font-semibold">Exploration</h4>
+                                        </div>
+                                        <p class="text-sm text-gray-700">
+                                            Trying new actions to discover potentially better strategies even if they seem suboptimal initially.
+                                        </p>
+                                    </div>
+                                    <div class="clean-box">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white mr-3">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <h4 class="font-semibold">Exploitation</h4>
+                                        </div>
+                                        <p class="text-sm text-gray-700">
+                                            Using current knowledge to maximize rewards by choosing actions known to yield good results.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <h3 class="text-lg font-semibold text-primary mb-3 flex items-center">
+                                    <i class="fas fa-code mr-2"></i>
+                                    Implementation
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <p class="text-gray-700 mb-2">
+                                            With probability ε (epsilon):
+                                        </p>
+                                        <div class="clean-box mb-3 font-mono text-sm bg-gradient-to-r from-primary/5 to-primary/10">
+                                            <span>Randomly select any action (exploration)</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <p class="text-gray-700 mb-2">
+                                            With probability 1-ε:
+                                        </p>
+                                        <div class="clean-box font-mono text-sm bg-gradient-to-r from-primary/5 to-primary/10">
+                                            <span>Select the action with highest Q-value (exploitation)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="md:w-1/2">
+                                <div class="glass-card p-5 h-full">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                        <i class="fas fa-chart-line text-primary mr-2"></i>
+                                        Epsilon Decay
+                                    </h3>
+                                    
+                                    <p class="text-gray-700 mb-4">
+                                        To transition from exploration to exploitation over time, we gradually decrease ε:
+                                    </p>
+                                    
+                                    <div class="broken-latex mb-6 mx-auto" id="epsilon-decay-vis-formula">
+                                        <p>In reinforcement learning, the exploration rate \(\epsilon_t\) at time step \(t\) is often decayed using the formula:</p>
+                                        <p>\[
+                                        \epsilon_t = \epsilon_0 \cdot \text{decay}^t,
+                                        \]</p>
+                                        <p>where \(\epsilon_0\) is the initial exploration rate, \(\text{decay}\) is the decay factor, and \(t\) is the current time step.</p>
+                                    </div>
+                                    
+                                    <div class="relative h-56 border border-gray-200 rounded-lg mb-4 overflow-hidden bg-white">
+                                        <div class="absolute inset-0">
+                                            <div class="h-full w-full p-4">
+                                                <div class="w-full h-full flex flex-col relative">
+                                                    <!-- Y-axis label -->
+                                                    <div class="absolute -left-2 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-gray-500">Epsilon Value</div>
+                                                    
+                                                    <!-- X-axis label -->
+                                                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs text-gray-500">Episodes</div>
+                                                    
+                                                    <!-- Simulation line -->
+                                                    <div class="flex-1 relative">
+                                                        <svg width="100%" height="100%" viewBox="0 0 300 150" class="overflow-visible">
+                                                            <!-- Axes -->
+                                                            <line x1="40" y1="10" x2="40" y2="120" stroke="#666" stroke-width="1" />
+                                                            <line x1="40" y1="120" x2="290" y2="120" stroke="#666" stroke-width="1" />
+                                                            
+                                                            <!-- Y-axis ticks -->
+                                                            <line x1="36" y1="10" x2="40" y2="10" stroke="#666" stroke-width="1" />
+                                                            <text x="25" y="14" font-size="10" fill="#666">1.0</text>
+                                                            
+                                                            <line x1="36" y1="65" x2="40" y2="65" stroke="#666" stroke-width="1" />
+                                                            <text x="25" y="69" font-size="10" fill="#666">0.5</text>
+                                                            
+                                                            <line x1="36" y1="120" x2="40" y2="120" stroke="#666" stroke-width="1" />
+                                                            <text x="25" y="124" font-size="10" fill="#666">0.0</text>
+                                                            
+                                                            <!-- X-axis ticks -->
+                                                            <line x1="40" y1="120" x2="40" y2="124" stroke="#666" stroke-width="1" />
+                                                            <text x="37" y="135" font-size="10" fill="#666">0</text>
+                                                            
+                                                            <line x1="150" y1="120" x2="150" y2="124" stroke="#666" stroke-width="1" />
+                                                            <text x="147" y="135" font-size="10" fill="#666">50</text>
+                                                            
+                                                            <line x1="260" y1="120" x2="260" y2="124" stroke="#666" stroke-width="1" />
+                                                            <text x="253" y="135" font-size="10" fill="#666">100</text>
+                                                            
+                                                            <!-- Decay curve -->
+                                                            <path d="M40,10 C90,30 150,70 260,110" stroke="#5D5CDE" stroke-width="3" fill="none" />
+                                                            
+                                                            <!-- Gradient area under curve -->
+                                                            <defs>
+                                                                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                                    <stop offset="0%" stop-color="#5D5CDE" stop-opacity="0.3" />
+                                                                    <stop offset="100%" stop-color="#5D5CDE" stop-opacity="0.05" />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <path d="M40,10 C90,30 150,70 260,110 L260,120 L40,120 Z" fill="url(#areaGradient)" />
+                                                            
+                                                            <!-- Exploration-Exploitation Labels -->
+                                                            <text x="50" y="30" font-size="10" fill="#5D5CDE" font-weight="bold">Exploration</text>
+                                                            <text x="200" y="100" font-size="10" fill="#5D5CDE" font-weight="bold">Exploitation</text>
+                                                            
+                                                            <!-- Current point -->
+                                                            <circle cx="150" cy="70" r="5" fill="#5D5CDE" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-gray-700 text-sm">
+                                        As ε decreases, the agent shifts from mostly random exploration to increasingly 
+                                        choosing the actions it believes are best based on learned Q-values. This transition 
+                                        helps the agent discover the environment early on and then refine its policy later.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            
+            <!-- Q-Table Visualization Section -->
+            <section id="qtable" class="section-content p-4 md:p-8 hidden">
+                <div class="max-w-6xl mx-auto">
+                    <div class="modern-card p-6 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2 tech-font">Q-Table Visualization</h2>
+                        <div class="h-1 w-32 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <div class="clean-box bg-gradient-to-r from-primary/5 to-primary/10 mb-6">
+                            <p class="text-gray-700 leading-relaxed">
+                                The Q-table stores the estimated value of each action in each state. As the agent explores 
+                                the environment and receives rewards, these values are updated using the Q-learning algorithm.
+                                Watch how values change over time and converge toward optimal solutions.
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <div class="lg:w-3/5">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                    <i class="fas fa-th text-primary mr-2"></i>
+                                    Grid Representation
+                                </h3>
+                                
+                                <!-- Grid and Q-Values Visualization -->
+                                <div class="relative aspect-square border border-gray-200 rounded-xl overflow-hidden shadow-md bg-white">
+                                    <div id="q-table-grid-container" class="grid grid-cols-5 grid-rows-5 w-full h-full">
+                                        <!-- Grid cells will be generated by JS -->
+                                    </div>
+                                    
+                                    <!-- Cell overlays for Q-values will be added by JS -->
+                                </div>
+                                
+                                <div class="flex justify-center mt-6 gap-6">
+                                    <button id="toggle-q-values-btn" class="animated-button bg-primary hover:bg-primary/90 text-white py-2 px-6 rounded-lg shadow-md transition flex items-center">
+                                        <i class="fas fa-eye mr-2"></i> Toggle Q-Values
+                                    </button>
+                                    
+                                    <button id="toggle-best-path-btn" class="animated-button bg-white border border-primary text-primary hover:bg-primary/5 py-2 px-6 rounded-lg shadow-sm transition flex items-center">
+                                        <i class="fas fa-route mr-2"></i> Show Best Path
+                                    </button>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                                    <div class="clean-box flex flex-col items-center">
+                                        <div class="text-primary text-lg mb-1">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </div>
+                                        <div class="text-xs text-gray-500">Up Action</div>
+                                    </div>
+                                    <div class="clean-box flex flex-col items-center">
+                                        <div class="text-primary text-lg mb-1">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div class="text-xs text-gray-500">Right Action</div>
+                                    </div>
+                                    <div class="clean-box flex flex-col items-center">
+                                        <div class="text-primary text-lg mb-1">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </div>
+                                        <div class="text-xs text-gray-500">Down Action</div>
+                                    </div>
+                                    <div class="clean-box flex flex-col items-center">
+                                        <div class="text-primary text-lg mb-1">
+                                            <i class="fas fa-arrow-left"></i>
+                                        </div>
+                                        <div class="text-xs text-gray-500">Left Action</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="lg:w-2/5">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                    <i class="fas fa-chart-bar text-primary mr-2"></i>
+                                    Q-Values Analysis
+                                </h3>
+                                
+                                <div class="mb-5">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Select State to Analyze
+                                    </label>
+                                    <select id="state-selector" class="w-full bg-white border border-gray-200 rounded-lg py-3 px-4 text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select a state...</option>
+                                        <!-- Options will be populated by JS -->
+                                    </select>
+                                </div>
+                                
+                                <div id="state-q-values" class="clean-box min-h-[220px] bg-gradient-to-br from-white to-gray-50">
+                                    <div class="text-gray-500 italic text-center py-10 flex flex-col items-center">
+                                        <i class="fas fa-hand-pointer text-2xl mb-3 text-primary opacity-50"></i>
+                                        Select a state to view its Q-values
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-md font-semibold text-gray-700 mb-3 flex items-center">
+                                        <i class="fas fa-brain text-primary mr-2"></i>
+                                        Learning Process
+                                    </h4>
+                                    
+                                    <div class="clean-box">
+                                        <div id="learning-visualization" class="text-sm text-gray-700">
+                                            <h5 class="font-semibold text-primary mb-3">Q-learning Process Steps:</h5>
+                                            <ol class="space-y-2">
+                                                <li class="flex">
+                                                    <div class="progress-circle active">1</div>
+                                                    <div>Agent observes current state (s)</div>
+                                                </li>
+                                                <li class="flex">
+                                                    <div class="progress-circle active">2</div>
+                                                    <div>Agent selects an action (a) using ε-greedy policy</div>
+                                                </li>
+                                                <li class="flex">
+                                                    <div class="progress-circle active">3</div>
+                                                    <div>Environment returns reward (r) and new state (s')</div>
+                                                </li>
+                                                <li class="flex items-start">
+                                                    <div class="progress-circle active">4</div>
+                                                    <div>
+                                                        <div>Agent updates Q(s,a) using the formula:</div>
+                                                        <div class="broken-latex my-3 ml-1 text-sm">
+                                                            Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma \max_{a'} Q(s', a') - Q(s, a)]
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="flex">
+                                                    <div class="progress-circle">5</div>
+                                                    <div>Process repeats until optimal Q-values are learned</div>
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modern-card p-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-2 tech-font">Complete Q-Table (25×4)</h2>
+                        <div class="h-1 w-32 bg-gradient-to-r from-primary to-secondary rounded mb-6"></div>
+                        
+                        <div class="mb-4 clean-box bg-gradient-to-r from-primary/5 to-primary/10">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                    <i class="fas fa-table text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Q-Table Structure</h3>
+                                    <p class="text-gray-700 text-sm">
+                                        This visualization shows the complete Q-table with all 25 states (grid positions) and 4 actions (up, right, down, left).
+                                        Each cell represents the expected future reward for taking that action in that state.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="q-table-wrapper overflow-x-auto max-h-[600px] border border-gray-200 rounded-xl shadow-sm">
+                            <table class="min-w-full border-collapse q-table">
+                                <thead class="sticky top-0 z-10">
+                                    <tr>
+                                        <th class="p-3 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200 sticky left-0 z-20">
+                                            State (x,y)
+                                        </th>
+                                        <th class="p-3 bg-gray-50 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                            <i class="fas fa-arrow-up mr-1"></i> Up (0)
+                                        </th>
+                                        <th class="p-3 bg-gray-50 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                            <i class="fas fa-arrow-right mr-1"></i> Right (1)
+                                        </th>
+                                        <th class="p-3 bg-gray-50 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                            <i class="fas fa-arrow-down mr-1"></i> Down (2)
+                                        </th>
+                                        <th class="p-3 bg-gray-50 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-200">
+                                            <i class="fas fa-arrow-left mr-1"></i> Left (3)
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="full-q-table-body">
+                                    <!-- Full Q-table will be generated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-between items-center flex-wrap gap-4">
+                            <div class="text-sm text-gray-700 clean-box flex items-center">
+                                <i class="fas fa-info-circle text-primary mr-2"></i>
+                                Each cell shows Q(s,a) values updated during learning
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <div class="text-xs flex items-center clean-box">
+                                    <div class="w-4 h-4 rounded-sm bg-primary/20 mr-2"></div>
+                                    <span class="text-gray-700">Highest Value</span>
+                                </div>
+                                <div class="text-xs flex items-center clean-box">
+                                    <div class="w-4 h-4 rounded-sm bg-primary/10 animate-pulse mr-2"></div>
+                                    <span class="text-gray-700">Recently Updated</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="asset/js/script.js"></script>
+</body>
+</html>
